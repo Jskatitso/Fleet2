@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity,
-  StyleSheet, KeyboardAvoidingView, Platform
+  StyleSheet, KeyboardAvoidingView, Platform,
 } from 'react-native';
-import colors from '../../constants/colors';
 
 const LoginScreen = ({ navigation }) => {
-  const [telephone, setTelephone] = useState('');
+  const [emailOrPhone, setEmailOrPhone] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
@@ -21,42 +20,65 @@ const LoginScreen = ({ navigation }) => {
     >
       <View style={styles.container}>
 
-        <Text style={styles.title}>Welcome Back</Text>
-        <Text style={styles.subtitle}>Sign in to your Fleet rider account</Text>
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+            <Text style={styles.backIcon}>‹</Text>
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Sign In</Text>
+        </View>
 
-        <Text style={styles.label}>Telephone Number</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="e.g. 0241234567"
-          placeholderTextColor={colors.subtext}
-          value={telephone}
-          onChangeText={setTelephone}
-          keyboardType="phone-pad"
-        />
+        {/* Title */}
+        <Text style={styles.title}>Welcome back</Text>
+        <Text style={styles.subtitle}>Enter your details to access your rider account.</Text>
 
-        <Text style={styles.label}>Password</Text>
-        <View style={styles.passwordWrapper}>
+        {/* Email or Phone */}
+        <Text style={styles.label}>Email or Phone</Text>
+        <View style={styles.inputWrapper}>
+          <Text style={styles.inputIcon}>✉</Text>
           <TextInput
-            style={styles.passwordInput}
-            placeholder="Enter your password"
-            placeholderTextColor={colors.subtext}
+            style={styles.input}
+            placeholder="user@example.com or +233..."
+            placeholderTextColor="#9CA3AF"
+            value={emailOrPhone}
+            onChangeText={setEmailOrPhone}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+        </View>
+
+        {/* Password */}
+        <Text style={styles.label}>Password</Text>
+        <View style={styles.inputWrapper}>
+          <Text style={styles.inputIcon}>🔒</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="••••••••"
+            placeholderTextColor="#9CA3AF"
             value={password}
             onChangeText={setPassword}
             secureTextEntry={!showPassword}
           />
           <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-            <Text style={styles.showText}>{showPassword ? 'Hide' : 'Show'}</Text>
+            <Text style={styles.eyeIcon}>{showPassword ? '🙈' : '👁'}</Text>
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity style={styles.button} onPress={handleLogin}>
-          <Text style={styles.buttonText}>Log In</Text>
+        {/* Forgot Password */}
+        <TouchableOpacity style={styles.forgotBtn}>
+          <Text style={styles.forgotText}>Forgot Password?</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => navigation.navigate('Signup')}>
+        {/* Sign In Button */}
+        <TouchableOpacity style={styles.button} onPress={handleLogin}>
+          <Text style={styles.buttonText}>Sign In</Text>
+        </TouchableOpacity>
+
+        {/* Sign up link */}
+        <TouchableOpacity onPress={() => navigation.navigate('RiderSignup')}>
           <Text style={styles.signupLink}>
             Don't have an account?{' '}
-            <Text style={styles.signupLinkAccent}>Sign Up</Text>
+            <Text style={styles.signupLinkAccent}>Sign up</Text>
           </Text>
         </TouchableOpacity>
 
@@ -68,78 +90,93 @@ const LoginScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.primary,
+    backgroundColor: '#FFFFFF',
     paddingHorizontal: 24,
-    justifyContent: 'center',
+    paddingTop: 60,
+    paddingBottom: 40,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 32,
+    gap: 8,
+  },
+  backBtn: { padding: 4 },
+  backIcon: {
+    fontSize: 28,
+    color: '#0F172A',
+    lineHeight: 28,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#0F172A',
   },
   title: {
-    color: colors.text,
-    fontSize: 28,
-    fontWeight: 'bold',
+    fontSize: 26,
+    fontWeight: '700',
+    color: '#0F172A',
     marginBottom: 6,
   },
   subtitle: {
-    color: colors.subtext,
     fontSize: 14,
-    marginBottom: 36,
+    color: '#6B7280',
+    marginBottom: 28,
   },
   label: {
-    color: colors.text,
-    fontSize: 14,
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#374151',
     marginBottom: 6,
-    marginTop: 14,
+    marginTop: 16,
   },
-  input: {
-    backgroundColor: colors.surface,
-    color: colors.text,
-    borderRadius: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 14,
-    borderWidth: 1,
-    borderColor: colors.secondary,
-  },
-  passwordWrapper: {
-    backgroundColor: colors.surface,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.secondary,
+  inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: '#E5E7EB',
+    borderRadius: 10,
     paddingHorizontal: 14,
-  },
-  passwordInput: {
-    flex: 1,
-    color: colors.text,
     paddingVertical: 12,
-    fontSize: 14,
+    gap: 10,
   },
-  showText: {
-    color: colors.accent,
+  inputIcon: { fontSize: 15 },
+  input: {
+    flex: 1,
     fontSize: 13,
-    fontWeight: 'bold',
+    color: '#374151',
+  },
+  eyeIcon: { fontSize: 15 },
+  forgotBtn: {
+    alignSelf: 'flex-end',
+    marginTop: 10,
+  },
+  forgotText: {
+    fontSize: 13,
+    color: '#F97316',
+    fontWeight: '500',
   },
   button: {
-    backgroundColor: colors.accent,
+    backgroundColor: '#0F172A',
+    borderRadius: 50,
     paddingVertical: 16,
-    borderRadius: 10,
     alignItems: 'center',
-    marginTop: 30,
+    marginTop: 28,
   },
   buttonText: {
-    color: colors.primary,
-    fontSize: 16,
-    fontWeight: 'bold',
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '600',
   },
   signupLink: {
-    color: colors.subtext,
     textAlign: 'center',
+    color: '#6B7280',
     marginTop: 20,
-    fontSize: 14,
+    fontSize: 13,
   },
   signupLinkAccent: {
-    color: colors.accent,
-    fontWeight: 'bold',
+    color: '#22C55E',
+    fontWeight: '600',
   },
 });
 

@@ -1,55 +1,64 @@
 import React from 'react';
 import {
-  View, Text, TouchableOpacity, StyleSheet, Image
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Image,
 } from 'react-native';
-import colors from '../constants/colors';
 
-const UserTypeScreen = ({ navigation, route }) => {
-  const mode = route.params?.mode;
-  const isSignup = mode === 'signup';
-
-  const handleRider = () => {
-    navigation.navigate(isSignup ? 'RiderSignup' : 'RiderLogin');
-  };
-
-  const handleCustomer = () => {
-    navigation.navigate(isSignup ? 'CustomerSignup' : 'CustomerLogin');
-  };
-
+const UserTypeScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
-      <Image
-        source={require('../../assets/logo.png')}
-        style={styles.logo}
-        resizeMode="contain"
-      />
 
-      <Text style={styles.title}>
-        {isSignup ? 'Create an Account' : 'Welcome Back'}
-      </Text>
-      <Text style={styles.subtitle}>
-        {isSignup ? 'What type of account do you want?' : 'Which account are you logging into?'}
-      </Text>
+      {/* Decorative dots */}
+      <View style={styles.dots}>
+        <View style={[styles.dot, { backgroundColor: '#22C55E' }]} />
+        <View style={[styles.dot, { backgroundColor: '#0F172A' }]} />
+        <View style={[styles.dot, { backgroundColor: '#F97316' }]} />
+      </View>
 
-      <TouchableOpacity style={styles.card} onPress={handleRider}>
-        <Text style={styles.cardIcon}>🏍️</Text>
-        <View>
-          <Text style={styles.cardTitle}>Rider</Text>
-          <Text style={styles.cardDesc}>I deliver parcels and packages</Text>
-        </View>
-      </TouchableOpacity>
+      {/* Logo + brand name */}
+      <View style={styles.brand}>
+        <Image
+          source={require('../../assets/logo.png')}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+        <Text style={styles.brandName}>Fleet</Text>
+      </View>
 
-      <TouchableOpacity style={styles.card} onPress={handleCustomer}>
-        <Text style={styles.cardIcon}>📦</Text>
-        <View>
-          <Text style={styles.cardTitle}>Customer</Text>
-          <Text style={styles.cardDesc}>I want to send or receive packages</Text>
-        </View>
-      </TouchableOpacity>
+      {/* Hero text */}
+      <View style={styles.heroContainer}>
+        <Text style={styles.heroMain}>Deliver Anything.</Text>
+        <Text style={styles.heroAccent}>Anywhere.</Text>
+        <Text style={styles.heroSub}>
+          Fast, reliable delivery across the city. We move what matters to you.
+        </Text>
+      </View>
 
-      <TouchableOpacity onPress={() => navigation.goBack()}>
-        <Text style={styles.backText}>← Back</Text>
-      </TouchableOpacity>
+      {/* Buttons */}
+      <View style={styles.btnContainer}>
+        <TouchableOpacity
+          style={styles.primaryBtn}
+          onPress={() => navigation.navigate('CustomerSignup')}
+        >
+          <Text style={styles.primaryBtnText}>📦  Send a package  →</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.secondaryBtn}
+          onPress={() => navigation.navigate('RiderSignup')}
+        >
+          <Text style={styles.secondaryBtnText}>🏍️  Become a rider  →</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Pagination indicator */}
+      <View style={styles.pageIndicator}>
+        <View style={styles.pageBarActive} />
+      </View>
+
     </View>
   );
 };
@@ -57,57 +66,95 @@ const UserTypeScreen = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.primary,
-    paddingHorizontal: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 28,
+    paddingTop: 64,
+    paddingBottom: 40,
+    justifyContent: 'space-between',
   },
-  logo: {
-    width: 100,
-    height: 100,
+  dots: {
+    flexDirection: 'row',
+    gap: 6,
     marginBottom: 20,
   },
-  title: {
-    color: colors.text,
-    fontSize: 26,
-    fontWeight: 'bold',
-    marginBottom: 6,
+  dot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
   },
-  subtitle: {
-    color: colors.subtext,
-    fontSize: 14,
-    marginBottom: 30,
-    textAlign: 'center',
-  },
-  card: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.secondary,
-    borderRadius: 12,
-    padding: 18,
-    width: '100%',
+  brand: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
-    marginBottom: 14,
+    gap: 8,
+    marginBottom: 32,
   },
-  cardIcon: {
-    fontSize: 30,
+  logo: {
+    width: 32,
+    height: 32,
   },
-  cardTitle: {
-    color: colors.text,
-    fontSize: 16,
-    fontWeight: 'bold',
+  brandName: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#0F172A',
+    letterSpacing: -0.3,
   },
-  cardDesc: {
-    color: colors.subtext,
-    fontSize: 12,
-    marginTop: 2,
+  heroContainer: {
+    flex: 1,
+    justifyContent: 'center',
   },
-  backText: {
-    color: colors.accent,
-    marginTop: 20,
+  heroMain: {
+    fontSize: 36,
+    fontWeight: '800',
+    color: '#0F172A',
+    letterSpacing: -0.5,
+    lineHeight: 44,
+  },
+  heroAccent: {
+    fontSize: 36,
+    fontWeight: '800',
+    color: '#22C55E',
+    letterSpacing: -0.5,
+    lineHeight: 44,
+    marginBottom: 16,
+  },
+  heroSub: {
     fontSize: 14,
+    color: '#6B7280',
+    lineHeight: 22,
+    maxWidth: '85%',
+  },
+  btnContainer: {
+    gap: 12,
+    marginBottom: 24,
+  },
+  primaryBtn: {
+    backgroundColor: '#0F172A',
+    paddingVertical: 16,
+    borderRadius: 50,
+    alignItems: 'center',
+  },
+  primaryBtnText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  secondaryBtn: {
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  secondaryBtnText: {
+    color: '#0F172A',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  pageIndicator: {
+    alignItems: 'center',
+  },
+  pageBarActive: {
+    width: 40,
+    height: 4,
+    backgroundColor: '#0F172A',
+    borderRadius: 2,
   },
 });
 

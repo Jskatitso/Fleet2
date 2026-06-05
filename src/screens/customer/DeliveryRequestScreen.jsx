@@ -1,96 +1,31 @@
 import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView,
-  TouchableOpacity, TextInput, KeyboardAvoidingView, Platform
+  TouchableOpacity, TextInput, KeyboardAvoidingView, Platform,
 } from 'react-native';
-import colors from '../../constants/colors';
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-const HOURS = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'));
-const MINUTES = ['00', '15', '30', '45'];
-const currentYear = new Date().getFullYear();
-const YEARS = [currentYear, currentYear + 1];
-const DAYS = Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, '0'));
+const packageTypes = [
+  { label: 'Document', icon: '📄' },
+  { label: 'Package/Box', icon: '📦' },
+  { label: 'Food', icon: '🍔' },
+  { label: 'Fragile', icon: '⚠️' },
+];
 
-const CyclePicker = ({ label, values, value, onChange }) => {
-  const index = values.indexOf(value);
-  const prev = () => onChange(values[(index - 1 + values.length) % values.length]);
-  const next = () => onChange(values[(index + 1) % values.length]);
-  return (
-    <View style={cycleStyles.wrapper}>
-      <Text style={cycleStyles.label}>{label}</Text>
-      <View style={cycleStyles.row}>
-        <TouchableOpacity onPress={prev} style={cycleStyles.arrow}>
-          <Text style={cycleStyles.arrowText}>‹</Text>
-        </TouchableOpacity>
-        <Text style={cycleStyles.value}>{value}</Text>
-        <TouchableOpacity onPress={next} style={cycleStyles.arrow}>
-          <Text style={cycleStyles.arrowText}>›</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
-};
-
-const cycleStyles = StyleSheet.create({
-  wrapper: { alignItems: 'center', flex: 1 },
-  label: { color: colors.subtext, fontSize: 11, marginBottom: 6 },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: colors.secondary,
-    paddingVertical: 10,
-    paddingHorizontal: 4,
-    gap: 6,
-  },
-  arrow: { paddingHorizontal: 8 },
-  arrowText: { color: colors.accent, fontSize: 22, fontWeight: 'bold' },
-  value: { color: colors.text, fontSize: 15, fontWeight: 'bold', minWidth: 36, textAlign: 'center' },
-});
-
-const DeliveryRequestScreen = ({ navigation, route }) => {
-  const initialPackageType = route?.params?.packageType || '';
-  const [step, setStep] = useState(initialPackageType ? 2 : 1);
+const DeliveryRequestScreen = ({ navigation }) => {
   const [form, setForm] = useState({
-    pickupLocation: '',
+    pickupLocation: 'Current Location',
     dropoffLocation: '',
-    packageType: initialPackageType,
-    deliveryNote: '',
-    recipientName: '',
-    recipientPhone: '',
-  });
-  const [schedule, setSchedule] = useState({
-    day: '01',
-    month: 'Jan',
-    year: String(currentYear),
-    hour: '09',
-    minute: '00',
-    ampm: 'AM',
+    packageType: 'Package/Box',
+    weight: '',
+    size: '',
+    notes: '',
   });
 
   const updateField = (field, value) => setForm({ ...form, [field]: value });
-  const updateSchedule = (field, value) => setSchedule({ ...schedule, [field]: value });
 
-  const isScheduled = form.packageType === 'Scheduled Delivery';
-  const confirmStep = isScheduled ? 4 : 3;
-  const stepLabels = isScheduled
-    ? ['Location', 'Package', 'Schedule', 'Confirm']
-    : ['Location', 'Package', 'Confirm'];
-
-  const scheduledDisplayStr = `${schedule.day} ${schedule.month} ${schedule.year}, ${schedule.hour}:${schedule.minute} ${schedule.ampm}`;
-
-  const packageTypes = [
-    { label: 'Small Package', icon: '📦', desc: 'Documents, small items' },
-    { label: 'Heavy Load', icon: '🏋️', desc: 'Large or heavy items' },
-    { label: 'Urgent Delivery', icon: '⚡', desc: 'Priority fast delivery' },
-    { label: 'Scheduled Delivery', icon: '🗓️', desc: 'Choose your date & time' },
-  ];
-
-  const handleConfirm = () => {
-    console.log('Delivery Request:', form, isScheduled ? schedule : null);
+  const handleContinue = () => {
+    console.log('Delivery form:', form);
+    // navigate to vehicle selection or estimates
   };
 
   return (
@@ -102,224 +37,138 @@ const DeliveryRequestScreen = ({ navigation, route }) => {
 
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Text style={styles.backText}>← Back</Text>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+            <Text style={styles.backIcon}>‹</Text>
           </TouchableOpacity>
-          <Text style={styles.pageTitle}>New Delivery</Text>
-          <View style={{ width: 50 }} />
+          <Text style={styles.headerTitle}>New Delivery</Text>
+          <View style={{ width: 32 }} />
         </View>
 
-        {/* Step Indicator */}
-        <View style={styles.stepRow}>
-          {stepLabels.map((label, index) => {
-            const s = index + 1;
-            return (
-              <View key={label} style={styles.stepItem}>
-                <View style={[styles.stepDot, step >= s && styles.stepDotActive]}>
-                  <Text style={[styles.stepNum, step >= s && styles.stepNumActive]}>{s}</Text>
-                </View>
-                <Text style={[styles.stepLabel, step === s && styles.stepLabelActive]}>{label}</Text>
-              </View>
-            );
-          })}
-        </View>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
 
-        <ScrollView showsVerticalScrollIndicator={false}>
+          {/* Location Details */}
+          <Text style={styles.sectionTitle}>Location Details</Text>
+          <View style={styles.locationCard}>
 
-          {/* Step 1 - Locations */}
-          {step === 1 && (
-            <View style={styles.stepContent}>
-              <Text style={styles.stepTitle}>Where are we picking up from?</Text>
-
-              <Text style={styles.label}>Pickup Location</Text>
-              <View style={styles.locationInput}>
-                <Text style={styles.locationDot}>🟢</Text>
+            {/* Pickup */}
+            <View style={styles.locationRow}>
+              <View style={styles.greenDot} />
+              <View style={styles.locationInputBox}>
+                <Text style={styles.locationLabel}>Pickup Location</Text>
                 <TextInput
-                  style={styles.locationTextInput}
-                  placeholder="Enter pickup address"
-                  placeholderTextColor={colors.subtext}
+                  style={styles.locationInput}
                   value={form.pickupLocation}
                   onChangeText={(val) => updateField('pickupLocation', val)}
+                  placeholder="Enter pickup location"
+                  placeholderTextColor="#9CA3AF"
                 />
               </View>
+              <Text style={styles.locationArrow}>⊙</Text>
+            </View>
 
-              <Text style={styles.label}>Dropoff Location</Text>
-              <View style={styles.locationInput}>
-                <Text style={styles.locationDot}>🔴</Text>
+            {/* Restaurant badge */}
+            <TouchableOpacity style={styles.restaurantBadge}>
+              <Text style={styles.restaurantBadgeText}>🏬  Top restaurants (nearest within 100m)</Text>
+            </TouchableOpacity>
+
+            <View style={styles.locationDivider} />
+
+            {/* Dropoff */}
+            <View style={styles.locationRow}>
+              <View style={styles.redDot} />
+              <View style={styles.locationInputBox}>
+                <Text style={styles.locationLabel}>Drop-off Location</Text>
                 <TextInput
-                  style={styles.locationTextInput}
-                  placeholder="Enter dropoff address"
-                  placeholderTextColor={colors.subtext}
+                  style={styles.locationInput}
                   value={form.dropoffLocation}
                   onChangeText={(val) => updateField('dropoffLocation', val)}
+                  placeholder="Where are we delivering to?"
+                  placeholderTextColor="#9CA3AF"
                 />
               </View>
-
-              <Text style={styles.label}>Recipient Name</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Who is receiving the package?"
-                placeholderTextColor={colors.subtext}
-                value={form.recipientName}
-                onChangeText={(val) => updateField('recipientName', val)}
-              />
-
-              <Text style={styles.label}>Recipient Phone</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="e.g. 0241234567"
-                placeholderTextColor={colors.subtext}
-                value={form.recipientPhone}
-                onChangeText={(val) => updateField('recipientPhone', val)}
-                keyboardType="phone-pad"
-              />
-
-              <TouchableOpacity style={styles.nextButton} onPress={() => setStep(2)}>
-                <Text style={styles.nextButtonText}>Next →</Text>
-              </TouchableOpacity>
             </View>
-          )}
+          </View>
 
-          {/* Step 2 - Package Type */}
-          {step === 2 && (
-            <View style={styles.stepContent}>
-              <Text style={styles.stepTitle}>What are you sending?</Text>
+          {/* Package Details */}
+          <Text style={styles.sectionTitle}>Package Details</Text>
+          <View style={styles.card}>
+            <Text style={styles.cardSubLabel}>What are you sending?</Text>
 
+            <View style={styles.packageGrid}>
               {packageTypes.map((pkg) => (
                 <TouchableOpacity
                   key={pkg.label}
-                  style={[styles.packageCard, form.packageType === pkg.label && styles.packageCardActive]}
+                  style={[
+                    styles.packageTypeBtn,
+                    form.packageType === pkg.label && styles.packageTypeBtnActive,
+                  ]}
                   onPress={() => updateField('packageType', pkg.label)}
                 >
-                  <Text style={styles.packageIcon}>{pkg.icon}</Text>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.packageLabel}>{pkg.label}</Text>
-                    <Text style={styles.packageDesc}>{pkg.desc}</Text>
-                  </View>
-                  {form.packageType === pkg.label && <Text style={styles.checkMark}>✅</Text>}
-                </TouchableOpacity>
-              ))}
-
-              <Text style={styles.label}>Delivery Note (optional)</Text>
-              <TextInput
-                style={[styles.input, { height: 80 }]}
-                placeholder="Any special instructions?"
-                placeholderTextColor={colors.subtext}
-                value={form.deliveryNote}
-                onChangeText={(val) => updateField('deliveryNote', val)}
-                multiline
-              />
-
-              <View style={styles.stepButtons}>
-                <TouchableOpacity style={styles.backButton} onPress={() => setStep(1)}>
-                  <Text style={styles.backButtonText}>← Back</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.nextButton}
-                  onPress={() => setStep(isScheduled ? 3 : confirmStep)}
-                >
-                  <Text style={styles.nextButtonText}>Next →</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          )}
-
-          {/* Step 3 - Schedule (only when Scheduled Delivery selected) */}
-          {step === 3 && isScheduled && (
-            <View style={styles.stepContent}>
-              <Text style={styles.stepTitle}>When should we deliver?</Text>
-
-              <Text style={styles.label}>Date</Text>
-              <View style={styles.pickerRow}>
-                <CyclePicker label="Day" values={DAYS} value={schedule.day} onChange={(v) => updateSchedule('day', v)} />
-                <CyclePicker label="Month" values={MONTHS} value={schedule.month} onChange={(v) => updateSchedule('month', v)} />
-                <CyclePicker label="Year" values={YEARS.map(String)} value={schedule.year} onChange={(v) => updateSchedule('year', v)} />
-              </View>
-
-              <Text style={styles.label}>Time</Text>
-              <View style={styles.pickerRow}>
-                <CyclePicker label="Hour" values={HOURS} value={schedule.hour} onChange={(v) => updateSchedule('hour', v)} />
-                <CyclePicker label="Min" values={MINUTES} value={schedule.minute} onChange={(v) => updateSchedule('minute', v)} />
-                <CyclePicker label="AM/PM" values={['AM', 'PM']} value={schedule.ampm} onChange={(v) => updateSchedule('ampm', v)} />
-              </View>
-
-              <View style={styles.schedulePreview}>
-                <Text style={styles.schedulePreviewLabel}>Scheduled for</Text>
-                <Text style={styles.schedulePreviewValue}>🗓️  {scheduledDisplayStr}</Text>
-              </View>
-
-              <View style={styles.stepButtons}>
-                <TouchableOpacity style={styles.backButton} onPress={() => setStep(2)}>
-                  <Text style={styles.backButtonText}>← Back</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.nextButton} onPress={() => setStep(4)}>
-                  <Text style={styles.nextButtonText}>Next →</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          )}
-
-          {/* Confirm Step */}
-          {step === confirmStep && (
-            <View style={styles.stepContent}>
-              <Text style={styles.stepTitle}>Confirm your delivery</Text>
-
-              <View style={styles.summaryCard}>
-                <Text style={styles.summaryTitle}>📍 Pickup</Text>
-                <Text style={styles.summaryValue}>{form.pickupLocation || 'Not set'}</Text>
-
-                <View style={styles.divider} />
-
-                <Text style={styles.summaryTitle}>📍 Dropoff</Text>
-                <Text style={styles.summaryValue}>{form.dropoffLocation || 'Not set'}</Text>
-
-                <View style={styles.divider} />
-
-                <Text style={styles.summaryTitle}>📦 Package Type</Text>
-                <Text style={styles.summaryValue}>{form.packageType || 'Not set'}</Text>
-
-                {isScheduled && (
-                  <>
-                    <View style={styles.divider} />
-                    <Text style={styles.summaryTitle}>🗓️ Scheduled For</Text>
-                    <Text style={styles.summaryValue}>{scheduledDisplayStr}</Text>
-                  </>
-                )}
-
-                <View style={styles.divider} />
-
-                <Text style={styles.summaryTitle}>👤 Recipient</Text>
-                <Text style={styles.summaryValue}>{form.recipientName || 'Not set'}</Text>
-
-                <View style={styles.divider} />
-
-                <Text style={styles.summaryTitle}>📞 Recipient Phone</Text>
-                <Text style={styles.summaryValue}>{form.recipientPhone || 'Not set'}</Text>
-
-                {form.deliveryNote ? (
-                  <>
-                    <View style={styles.divider} />
-                    <Text style={styles.summaryTitle}>📝 Note</Text>
-                    <Text style={styles.summaryValue}>{form.deliveryNote}</Text>
-                  </>
-                ) : null}
-              </View>
-
-              <View style={styles.stepButtons}>
-                <TouchableOpacity
-                  style={styles.backButton}
-                  onPress={() => setStep(isScheduled ? 3 : 2)}
-                >
-                  <Text style={styles.backButtonText}>← Back</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.confirmButton} onPress={handleConfirm}>
-                  <Text style={styles.confirmButtonText}>
-                    {isScheduled ? 'Schedule Delivery' : 'Request Rider'}
+                  <Text style={styles.packageTypeIcon}>{pkg.icon}</Text>
+                  <Text style={[
+                    styles.packageTypeLabel,
+                    form.packageType === pkg.label && styles.packageTypeLabelActive,
+                  ]}>
+                    {pkg.label}
                   </Text>
                 </TouchableOpacity>
+              ))}
+            </View>
+
+            {/* Weight & Size */}
+            <View style={styles.twoColRow}>
+              <View style={styles.halfInput}>
+                <Text style={styles.inputLabel}>Est. Weight (kg)</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="e.g. 5"
+                  placeholderTextColor="#9CA3AF"
+                  value={form.weight}
+                  onChangeText={(val) => updateField('weight', val)}
+                  keyboardType="numeric"
+                />
+              </View>
+              <View style={styles.halfInput}>
+                <Text style={styles.inputLabel}>Size (cm)</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="L x W x H"
+                  placeholderTextColor="#9CA3AF"
+                  value={form.size}
+                  onChangeText={(val) => updateField('size', val)}
+                />
               </View>
             </View>
-          )}
+          </View>
+
+          {/* Additional Information */}
+          <Text style={styles.sectionTitle}>Additional Information</Text>
+          <View style={styles.card}>
+
+            {/* Photos */}
+            <Text style={styles.inputLabel}>Package Photos (Optional)</Text>
+            <TouchableOpacity style={styles.photoUploadBox}>
+              <Text style={styles.photoUploadIcon}>📷</Text>
+              <Text style={styles.photoUploadTitle}>Add Photos</Text>
+              <Text style={styles.photoUploadSub}>Help the rider identify the package</Text>
+            </TouchableOpacity>
+
+            {/* Notes */}
+            <Text style={[styles.inputLabel, { marginTop: 16 }]}>Notes for Rider</Text>
+            <TextInput
+              style={styles.notesInput}
+              placeholder="e.g. Handle with care, call upon arrival..."
+              placeholderTextColor="#9CA3AF"
+              value={form.notes}
+              onChangeText={(val) => updateField('notes', val)}
+              multiline
+            />
+          </View>
+
+          {/* Continue Button */}
+          <TouchableOpacity style={styles.continueBtn} onPress={handleContinue}>
+            <Text style={styles.continueBtnText}>Continue to Estimates</Text>
+          </TouchableOpacity>
 
         </ScrollView>
       </View>
@@ -330,226 +179,209 @@ const DeliveryRequestScreen = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.primary,
-    paddingHorizontal: 20,
-    paddingTop: 50,
+    backgroundColor: '#FFFFFF',
   },
   header: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
+    paddingHorizontal: 20,
+    paddingTop: 56,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
   },
-  backText: {
-    color: colors.accent,
+  backBtn: { padding: 4 },
+  backIcon: {
+    fontSize: 28,
+    color: '#0F172A',
+    lineHeight: 28,
+  },
+  headerTitle: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#0F172A',
+  },
+  scroll: {
+    padding: 20,
+    paddingBottom: 48,
+  },
+  sectionTitle: {
     fontSize: 14,
+    fontWeight: '700',
+    color: '#0F172A',
+    marginBottom: 10,
+    marginTop: 20,
   },
-  pageTitle: {
-    color: colors.text,
-    fontSize: 18,
-    fontWeight: 'bold',
+  locationCard: {
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+    borderRadius: 12,
+    padding: 14,
+    gap: 10,
   },
-  stepRow: {
+  locationRow: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 24,
-    marginBottom: 24,
-  },
-  stepItem: {
     alignItems: 'center',
-    gap: 4,
+    gap: 10,
   },
-  stepDot: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.secondary,
-    justifyContent: 'center',
-    alignItems: 'center',
+  greenDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#22C55E',
   },
-  stepDotActive: {
-    backgroundColor: colors.accent,
-    borderColor: colors.accent,
+  redDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 3,
+    backgroundColor: '#EF4444',
   },
-  stepNum: {
-    color: colors.subtext,
-    fontWeight: 'bold',
-    fontSize: 14,
+  locationInputBox: {
+    flex: 1,
   },
-  stepNumActive: {
-    color: colors.primary,
-  },
-  stepLabel: {
-    color: colors.subtext,
+  locationLabel: {
     fontSize: 10,
-  },
-  stepLabelActive: {
-    color: colors.accent,
-    fontWeight: 'bold',
-  },
-  stepContent: {
-    paddingBottom: 40,
-  },
-  stepTitle: {
-    color: colors.text,
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 20,
-  },
-  label: {
-    color: colors.text,
-    fontSize: 14,
-    marginBottom: 6,
-    marginTop: 14,
-  },
-  input: {
-    backgroundColor: colors.surface,
-    color: colors.text,
-    borderRadius: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 14,
-    borderWidth: 1,
-    borderColor: colors.secondary,
+    color: '#94A3B8',
+    marginBottom: 2,
   },
   locationInput: {
-    backgroundColor: colors.surface,
-    borderRadius: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 14,
-    borderWidth: 1,
-    borderColor: colors.secondary,
-    gap: 8,
+    fontSize: 13,
+    color: '#0F172A',
+    fontWeight: '500',
   },
-  locationDot: {
-    fontSize: 14,
-  },
-  locationTextInput: {
-    flex: 1,
-    color: colors.text,
-    paddingVertical: 12,
-    fontSize: 14,
-  },
-  packageCard: {
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-    borderWidth: 1,
-    borderColor: colors.secondary,
-  },
-  packageCardActive: {
-    borderColor: colors.accent,
-  },
-  packageIcon: {
-    fontSize: 28,
-  },
-  packageLabel: {
-    color: colors.text,
-    fontWeight: 'bold',
-    fontSize: 14,
-  },
-  packageDesc: {
-    color: colors.subtext,
-    fontSize: 12,
-    marginTop: 2,
-  },
-  checkMark: {
+  locationArrow: {
     fontSize: 18,
+    color: '#22C55E',
   },
-  pickerRow: {
-    flexDirection: 'row',
-    gap: 10,
-    marginTop: 4,
+  restaurantBadge: {
+    backgroundColor: '#F0FDF4',
+    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    alignSelf: 'flex-start',
+    marginLeft: 22,
   },
-  schedulePreview: {
-    backgroundColor: colors.surface,
-    borderRadius: 10,
-    padding: 16,
-    marginTop: 20,
-    borderWidth: 1,
-    borderColor: colors.accent,
-    alignItems: 'center',
-    gap: 6,
+  restaurantBadgeText: {
+    fontSize: 11,
+    color: '#16A34A',
+    fontWeight: '500',
   },
-  schedulePreviewLabel: {
-    color: colors.subtext,
-    fontSize: 12,
+  locationDivider: {
+    height: 1,
+    backgroundColor: '#F1F5F9',
+    marginVertical: 4,
   },
-  schedulePreviewValue: {
-    color: colors.accent,
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  stepButtons: {
-    flexDirection: 'row',
-    gap: 10,
-    marginTop: 24,
-  },
-  backButton: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: colors.secondary,
-    borderRadius: 10,
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  backButtonText: {
-    color: colors.subtext,
-    fontWeight: 'bold',
-  },
-  nextButton: {
-    flex: 1,
-    backgroundColor: colors.accent,
-    borderRadius: 10,
-    paddingVertical: 14,
-    alignItems: 'center',
-    marginTop: 24,
-  },
-  nextButtonText: {
-    color: colors.primary,
-    fontWeight: 'bold',
-    fontSize: 15,
-  },
-  confirmButton: {
-    flex: 1,
-    backgroundColor: colors.accent,
-    borderRadius: 10,
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  confirmButtonText: {
-    color: colors.primary,
-    fontWeight: 'bold',
-    fontSize: 15,
-  },
-  summaryCard: {
-    backgroundColor: colors.surface,
+  card: {
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
     borderRadius: 12,
     padding: 16,
-    borderWidth: 1,
-    borderColor: colors.secondary,
   },
-  summaryTitle: {
-    color: colors.subtext,
+  cardSubLabel: {
+    fontSize: 13,
+    color: '#6B7280',
+    marginBottom: 12,
+  },
+  packageGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginBottom: 16,
+  },
+  packageTypeBtn: {
+    width: '47%',
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+    borderRadius: 10,
+    padding: 12,
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#F8FAFC',
+  },
+  packageTypeBtnActive: {
+    borderColor: '#22C55E',
+    backgroundColor: '#F0FDF4',
+  },
+  packageTypeIcon: {
+    fontSize: 22,
+  },
+  packageTypeLabel: {
     fontSize: 12,
+    fontWeight: '500',
+    color: '#6B7280',
+  },
+  packageTypeLabelActive: {
+    color: '#16A34A',
+    fontWeight: '700',
+  },
+  twoColRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  halfInput: {
+    flex: 1,
+  },
+  inputLabel: {
+    fontSize: 12,
+    color: '#374151',
+    fontWeight: '500',
+    marginBottom: 6,
+  },
+  input: {
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 13,
+    color: '#0F172A',
+  },
+  photoUploadBox: {
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+    borderRadius: 10,
+    borderStyle: 'dashed',
+    padding: 20,
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#F8FAFC',
+  },
+  photoUploadIcon: {
+    fontSize: 24,
     marginBottom: 4,
   },
-  summaryValue: {
-    color: colors.text,
-    fontSize: 14,
-    fontWeight: 'bold',
+  photoUploadTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#0F172A',
   },
-  divider: {
-    height: 1,
-    backgroundColor: colors.secondary,
-    marginVertical: 12,
+  photoUploadSub: {
+    fontSize: 11,
+    color: '#94A3B8',
+  },
+  notesInput: {
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 13,
+    color: '#0F172A',
+    height: 80,
+    textAlignVertical: 'top',
+  },
+  continueBtn: {
+    backgroundColor: '#0F172A',
+    borderRadius: 50,
+    paddingVertical: 16,
+    alignItems: 'center',
+    marginTop: 28,
+  },
+  continueBtnText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '600',
   },
 });
 

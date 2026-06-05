@@ -2,119 +2,109 @@ import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, FlatList, TouchableOpacity,
 } from 'react-native';
-import colors from '../../constants/colors';
 
 const INITIAL_NOTIFICATIONS = [
   {
     id: '1',
-    title: 'Rider Assigned',
-    message: 'Kwame A. has been assigned to your delivery FLT-002. He is on his way to pick up your package.',
-    time: '2 mins ago',
+    title: 'Driver Arriving Soon',
+    message: 'Kwame is 5 minutes away from your pickup location at East Legon.',
+    time: 'Just now',
     read: false,
-    icon: '🏍️',
-    type: 'order',
+    icon: '📍',
+    action: { label: 'Track Order', screen: 'TrackOrder' },
   },
   {
     id: '2',
-    title: 'Delivery Completed',
-    message: 'Your order FLT-001 from Accra Mall has been delivered successfully. Tap to rate your rider.',
-    time: '1 hour ago',
+    title: 'Payment Successful',
+    message: 'GHS 45.00 has been deducted from your wallet for Order #FL-892A.',
+    time: '2 hours ago',
     read: false,
     icon: '✅',
-    type: 'order',
+    action: { label: 'View Receipt', screen: null },
   },
   {
     id: '3',
-    title: 'Package Picked Up',
-    message: 'Your package for FLT-002 has been picked up from Tema Station and is now in transit.',
-    time: '2 hours ago',
-    read: false,
-    icon: '📦',
-    type: 'order',
+    title: 'Weekend Delivery Promo',
+    message: 'Enjoy 20% off all your package deliveries this weekend. Use code FLEET20.',
+    time: 'Yesterday, 10:00 AM',
+    read: true,
+    icon: '🎁',
+    action: { label: 'Send Package', screen: 'Request' },
   },
   {
     id: '4',
-    title: 'Weekend Promo 🎉',
-    message: 'Get 20% off all deliveries this weekend. Use code FLEET20 at checkout.',
-    time: 'Yesterday',
+    title: 'Package Delivered',
+    message: 'Your package to Osu has been successfully delivered and signed for.',
+    time: 'Oct 24, 14:30',
     read: true,
-    icon: '🏷️',
-    type: 'promo',
+    icon: '📦',
+    action: { label: 'Rate Delivery', screen: null },
   },
   {
     id: '5',
-    title: 'Delivery Cancelled',
-    message: 'Your order FLT-004 was cancelled. A full refund has been processed to your MoMo account.',
-    time: 'Apr 25',
+    title: 'System Maintenance',
+    message: 'App maintenance will occur tonight from 2AM to 4AM. Expect brief disruptions.',
+    time: 'Oct 22, 09:15',
     read: true,
-    icon: '❌',
-    type: 'order',
-  },
-  {
-    id: '6',
-    title: 'Payment Confirmed',
-    message: 'Payment of GHS 35.00 for order FLT-001 has been confirmed.',
-    time: 'Apr 24',
-    read: true,
-    icon: '💳',
-    type: 'payment',
-  },
-  {
-    id: '7',
-    title: 'Welcome to Fleet!',
-    message: 'Your account is set up and ready. Request your first delivery anytime.',
-    time: 'Apr 20',
-    read: true,
-    icon: '🛡️',
-    type: 'system',
+    icon: '🔧',
+    action: null,
   },
 ];
 
-const FILTERS = ['All', 'Orders', 'Payments', 'Promos'];
-
-const typeMap = {
-  All: null,
-  Orders: 'order',
-  Payments: 'payment',
-  Promos: 'promo',
-};
-
-const CustomerNotificationsScreen = () => {
+const CustomerNotificationsScreen = ({ navigation }) => {
   const [notifications, setNotifications] = useState(INITIAL_NOTIFICATIONS);
-  const [activeFilter, setActiveFilter] = useState('All');
 
-  const markRead = (id) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-    );
+  const dismiss = (id) => {
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
   };
 
   const markAllRead = () => {
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
   };
 
-  const filtered = activeFilter === 'All'
-    ? notifications
-    : notifications.filter((n) => n.type === typeMap[activeFilter]);
-
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   const renderItem = ({ item }) => (
-    <TouchableOpacity
-      style={[styles.card, !item.read && styles.unreadCard]}
-      onPress={() => markRead(item.id)}
-      activeOpacity={0.8}
-    >
-      <Text style={styles.cardIcon}>{item.icon}</Text>
-      <View style={styles.cardContent}>
-        <View style={styles.cardHeader}>
-          <Text style={styles.cardTitle}>{item.title}</Text>
-          {!item.read && <View style={styles.unreadDot} />}
+    <View style={[styles.card, !item.read && styles.cardUnread]}>
+      {/* Unread indicator bar */}
+      {!item.read && <View style={styles.unreadBar} />}
+
+      <View style={styles.cardInner}>
+        {/* Icon */}
+        <View style={[styles.iconBox, !item.read && styles.iconBoxUnread]}>
+          <Text style={styles.icon}>{item.icon}</Text>
         </View>
-        <Text style={styles.cardMessage}>{item.message}</Text>
-        <Text style={styles.cardTime}>{item.time}</Text>
+
+        {/* Content */}
+        <View style={styles.cardContent}>
+          <View style={styles.cardTopRow}>
+            <Text style={[styles.cardTitle, !item.read && styles.cardTitleUnread]}>
+              {item.title}
+            </Text>
+            <Text style={styles.cardTime}>{item.time}</Text>
+          </View>
+          <Text style={styles.cardMessage}>{item.message}</Text>
+
+          {/* Actions */}
+          <View style={styles.cardActions}>
+            {item.action && (
+              <TouchableOpacity
+                style={styles.actionBtn}
+                onPress={() => item.action.screen && navigation.navigate(item.action.screen)}
+              >
+                <Text style={styles.actionBtnText}>{item.action.label} ›</Text>
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity
+              style={styles.dismissBtn}
+              onPress={() => dismiss(item.id)}
+            >
+              <Text style={styles.dismissBtnText}>🗑 Dismiss</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </View>
-    </TouchableOpacity>
+    </View>
   );
 
   return (
@@ -122,12 +112,7 @@ const CustomerNotificationsScreen = () => {
 
       {/* Header */}
       <View style={styles.header}>
-        <View>
-          <Text style={styles.pageTitle}>Notifications</Text>
-          {unreadCount > 0 && (
-            <Text style={styles.unreadLabel}>{unreadCount} unread</Text>
-          )}
-        </View>
+        <Text style={styles.pageTitle}>Notifications</Text>
         {unreadCount > 0 && (
           <TouchableOpacity onPress={markAllRead}>
             <Text style={styles.markAllText}>Mark all read</Text>
@@ -135,29 +120,14 @@ const CustomerNotificationsScreen = () => {
         )}
       </View>
 
-      {/* Filter Tabs */}
-      <View style={styles.filterRow}>
-        {FILTERS.map((f) => (
-          <TouchableOpacity
-            key={f}
-            style={[styles.filterTab, activeFilter === f && styles.filterTabActive]}
-            onPress={() => setActiveFilter(f)}
-          >
-            <Text style={[styles.filterText, activeFilter === f && styles.filterTextActive]}>
-              {f}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      {filtered.length === 0 ? (
+      {notifications.length === 0 ? (
         <View style={styles.empty}>
           <Text style={styles.emptyIcon}>🔔</Text>
-          <Text style={styles.emptyText}>No notifications here</Text>
+          <Text style={styles.emptyText}>No notifications yet</Text>
         </View>
       ) : (
         <FlatList
-          data={filtered}
+          data={notifications}
           keyExtractor={(item) => item.id}
           renderItem={renderItem}
           showsVerticalScrollIndicator={false}
@@ -172,104 +142,123 @@ const CustomerNotificationsScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.primary,
+    backgroundColor: '#FFFFFF',
     paddingHorizontal: 20,
-    paddingTop: 50,
+    paddingTop: 56,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     marginBottom: 20,
   },
   pageTitle: {
-    color: colors.text,
-    fontSize: 22,
-    fontWeight: 'bold',
-  },
-  unreadLabel: {
-    color: colors.accent,
-    fontSize: 12,
-    marginTop: 2,
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#0F172A',
   },
   markAllText: {
-    color: colors.accent,
     fontSize: 13,
-    fontWeight: 'bold',
-  },
-  filterRow: {
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: 16,
-  },
-  filterTab: {
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderRadius: 20,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.secondary,
-  },
-  filterTabActive: {
-    backgroundColor: colors.accent,
-    borderColor: colors.accent,
-  },
-  filterText: {
-    color: colors.subtext,
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  filterTextActive: {
-    color: colors.primary,
+    color: '#22C55E',
+    fontWeight: '600',
   },
   card: {
-    backgroundColor: colors.surface,
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
-    padding: 14,
     marginBottom: 12,
-    flexDirection: 'row',
-    gap: 12,
     borderWidth: 1,
-    borderColor: colors.secondary,
+    borderColor: '#F1F5F9',
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 1,
   },
-  unreadCard: {
-    borderColor: colors.accent,
+  cardUnread: {
+    borderColor: '#DCFCE7',
+    backgroundColor: '#F0FDF4',
   },
-  cardIcon: {
-    fontSize: 26,
-    marginTop: 2,
+  unreadBar: {
+    height: 3,
+    backgroundColor: '#22C55E',
+    width: '100%',
+  },
+  cardInner: {
+    flexDirection: 'row',
+    padding: 14,
+    gap: 12,
+  },
+  iconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: '#F1F5F9',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  iconBoxUnread: {
+    backgroundColor: '#DCFCE7',
+  },
+  icon: {
+    fontSize: 18,
   },
   cardContent: {
     flex: 1,
+    gap: 4,
   },
-  cardHeader: {
+  cardTopRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
+    alignItems: 'flex-start',
+    gap: 8,
   },
   cardTitle: {
-    color: colors.text,
-    fontWeight: 'bold',
-    fontSize: 14,
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#374151',
     flex: 1,
   },
-  unreadDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: colors.accent,
-    marginLeft: 8,
-  },
-  cardMessage: {
-    color: colors.subtext,
-    fontSize: 12,
-    lineHeight: 18,
-    marginBottom: 6,
+  cardTitleUnread: {
+    color: '#16A34A',
   },
   cardTime: {
-    color: colors.subtext,
+    fontSize: 10,
+    color: '#94A3B8',
+    flexShrink: 0,
+  },
+  cardMessage: {
+    fontSize: 12,
+    color: '#6B7280',
+    lineHeight: 17,
+  },
+  cardActions: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 8,
+    alignItems: 'center',
+  },
+  actionBtn: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  actionBtnText: {
     fontSize: 11,
+    fontWeight: '600',
+    color: '#0F172A',
+  },
+  dismissBtn: {
+    paddingHorizontal: 6,
+    paddingVertical: 5,
+  },
+  dismissBtnText: {
+    fontSize: 11,
+    color: '#94A3B8',
   },
   empty: {
     flex: 1,
@@ -281,8 +270,8 @@ const styles = StyleSheet.create({
     fontSize: 48,
   },
   emptyText: {
-    color: colors.subtext,
-    fontSize: 16,
+    fontSize: 15,
+    color: '#94A3B8',
   },
 });
 

@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 import {
-  View, Text, StyleSheet, FlatList,
-  TouchableOpacity,
+  View, Text, StyleSheet, FlatList, TouchableOpacity,
 } from 'react-native';
-import colors from '../../constants/colors';
 
 const ALL_DELIVERIES = [
   {
@@ -12,7 +10,7 @@ const ALL_DELIVERIES = [
     to: 'East Legon, A&C Mall',
     status: 'Delivered',
     date: 'Today, 10:30 AM',
-    price: 'GHS 35.00',
+    price: '₵ 35.00',
     packageType: 'Small Package',
     rider: 'Kwame A.',
   },
@@ -22,7 +20,7 @@ const ALL_DELIVERIES = [
     to: 'Madina Market',
     status: 'In Transit',
     date: 'Today, 8:00 AM',
-    price: 'GHS 80.00',
+    price: '₵ 80.00',
     packageType: 'Heavy Load',
     rider: 'Kofi B.',
   },
@@ -32,7 +30,7 @@ const ALL_DELIVERIES = [
     to: 'Airport Residential',
     status: 'Delivered',
     date: 'Yesterday, 3:00 PM',
-    price: 'GHS 55.00',
+    price: '₵ 55.00',
     packageType: 'Urgent Delivery',
     rider: 'Ama S.',
   },
@@ -42,7 +40,7 @@ const ALL_DELIVERIES = [
     to: 'Lapaz, Shell Junction',
     status: 'Cancelled',
     date: 'Apr 25, 1:15 PM',
-    price: 'GHS 40.00',
+    price: '₵ 40.00',
     packageType: 'Small Package',
     rider: 'N/A',
   },
@@ -52,7 +50,7 @@ const ALL_DELIVERIES = [
     to: 'Adenta Housing Down',
     status: 'Delivered',
     date: 'Apr 24, 11:00 AM',
-    price: 'GHS 60.00',
+    price: '₵ 60.00',
     packageType: 'Small Package',
     rider: 'Yaw M.',
   },
@@ -60,18 +58,10 @@ const ALL_DELIVERIES = [
 
 const FILTERS = ['All', 'Delivered', 'In Transit', 'Cancelled'];
 
-const statusColor = (status) => {
-  if (status === 'Delivered') return colors.accent;
-  if (status === 'In Transit') return '#F5A623';
-  if (status === 'Cancelled') return colors.error;
-  return colors.subtext;
-};
-
-const statusIcon = (status) => {
-  if (status === 'Delivered') return '✅';
-  if (status === 'In Transit') return '🚚';
-  if (status === 'Cancelled') return '❌';
-  return '📦';
+const statusConfig = {
+  Delivered:  { color: '#22C55E', bg: '#F0FDF4', icon: '✅' },
+  'In Transit': { color: '#F97316', bg: '#FFF7ED', icon: '🚚' },
+  Cancelled:  { color: '#EF4444', bg: '#FEF2F2', icon: '❌' },
 };
 
 const CustomerHistoryScreen = ({ route, navigation }) => {
@@ -82,41 +72,48 @@ const CustomerHistoryScreen = ({ route, navigation }) => {
     ? ALL_DELIVERIES
     : ALL_DELIVERIES.filter((d) => d.status === activeFilter);
 
-  const toggleExpand = (id) => {
-    setExpanded(expanded === id ? null : id);
-  };
+  const toggleExpand = (id) => setExpanded(expanded === id ? null : id);
 
   const renderItem = ({ item }) => {
     const isOpen = expanded === item.id;
+    const cfg = statusConfig[item.status] || {};
+
     return (
       <TouchableOpacity
         style={styles.card}
         onPress={() => toggleExpand(item.id)}
         activeOpacity={0.85}
       >
+        {/* Card Header */}
         <View style={styles.cardHeader}>
-          <View style={styles.cardLeft}>
+          <View>
             <Text style={styles.orderId}>{item.id}</Text>
             <Text style={styles.date}>{item.date}</Text>
           </View>
           <View style={styles.cardRight}>
-            <Text style={[styles.statusBadge, { color: statusColor(item.status) }]}>
-              {statusIcon(item.status)} {item.status}
-            </Text>
+            <View style={[styles.statusBadge, { backgroundColor: cfg.bg }]}>
+              <Text style={[styles.statusText, { color: cfg.color }]}>
+                {cfg.icon} {item.status}
+              </Text>
+            </View>
             <Text style={styles.price}>{item.price}</Text>
           </View>
         </View>
 
-        <View style={styles.routeRow}>
-          <Text style={styles.routeDot}>🟢</Text>
-          <Text style={styles.routeText} numberOfLines={1}>{item.from}</Text>
-        </View>
-        <View style={styles.routeLine} />
-        <View style={styles.routeRow}>
-          <Text style={styles.routeDot}>🔴</Text>
-          <Text style={styles.routeText} numberOfLines={1}>{item.to}</Text>
+        {/* Route */}
+        <View style={styles.routeContainer}>
+          <View style={styles.routeRow}>
+            <View style={styles.greenDot} />
+            <Text style={styles.routeText} numberOfLines={1}>{item.from}</Text>
+          </View>
+          <View style={styles.routeLine} />
+          <View style={styles.routeRow}>
+            <View style={styles.redDot} />
+            <Text style={styles.routeText} numberOfLines={1}>{item.to}</Text>
+          </View>
         </View>
 
+        {/* Expanded Details */}
         {isOpen && (
           <View style={styles.details}>
             <View style={styles.divider} />
@@ -130,15 +127,15 @@ const CustomerHistoryScreen = ({ route, navigation }) => {
             </View>
             {item.status === 'In Transit' && (
               <TouchableOpacity
-                style={styles.trackButton}
+                style={styles.trackBtn}
                 onPress={() => navigation.navigate('TrackOrder', { order: item })}
               >
-                <Text style={styles.trackText}>📍 Track Order</Text>
+                <Text style={styles.trackBtnText}>📍  Track Order</Text>
               </TouchableOpacity>
             )}
             {item.status === 'Delivered' && (
-              <TouchableOpacity style={styles.reorderButton}>
-                <Text style={styles.reorderText}>🔁 Reorder</Text>
+              <TouchableOpacity style={styles.reorderBtn}>
+                <Text style={styles.reorderBtnText}>🔁  Reorder</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -149,7 +146,9 @@ const CustomerHistoryScreen = ({ route, navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Delivery History</Text>
+
+      {/* Header */}
+      <Text style={styles.pageTitle}>Delivery History</Text>
 
       {/* Filter Tabs */}
       <View style={styles.filterRow}>
@@ -166,7 +165,6 @@ const CustomerHistoryScreen = ({ route, navigation }) => {
         ))}
       </View>
 
-      {/* Summary */}
       <Text style={styles.resultCount}>
         {filtered.length} {filtered.length === 1 ? 'delivery' : 'deliveries'}
       </Text>
@@ -192,14 +190,14 @@ const CustomerHistoryScreen = ({ route, navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.primary,
+    backgroundColor: '#FFFFFF',
     paddingHorizontal: 20,
-    paddingTop: 50,
+    paddingTop: 56,
   },
-  title: {
-    color: colors.text,
-    fontSize: 22,
-    fontWeight: 'bold',
+  pageTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#0F172A',
     marginBottom: 20,
   },
   filterRow: {
@@ -211,91 +209,111 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 7,
     borderRadius: 20,
-    backgroundColor: colors.surface,
+    backgroundColor: '#F8FAFC',
     borderWidth: 1,
-    borderColor: colors.secondary,
+    borderColor: '#E2E8F0',
   },
   filterTabActive: {
-    backgroundColor: colors.accent,
-    borderColor: colors.accent,
+    backgroundColor: '#0F172A',
+    borderColor: '#0F172A',
   },
   filterText: {
-    color: colors.subtext,
+    color: '#94A3B8',
     fontSize: 12,
-    fontWeight: 'bold',
+    fontWeight: '600',
   },
   filterTextActive: {
-    color: colors.primary,
+    color: '#FFFFFF',
   },
   resultCount: {
-    color: colors.subtext,
+    color: '#94A3B8',
     fontSize: 12,
     marginBottom: 12,
   },
   card: {
-    backgroundColor: colors.surface,
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: colors.secondary,
+    borderColor: '#F1F5F9',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 1,
   },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: 14,
   },
-  cardLeft: {
-    gap: 4,
+  orderId: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#22C55E',
+  },
+  date: {
+    fontSize: 11,
+    color: '#94A3B8',
+    marginTop: 2,
   },
   cardRight: {
     alignItems: 'flex-end',
-    gap: 4,
-  },
-  orderId: {
-    color: colors.accent,
-    fontWeight: 'bold',
-    fontSize: 13,
-  },
-  date: {
-    color: colors.subtext,
-    fontSize: 11,
+    gap: 6,
   },
   statusBadge: {
-    fontSize: 12,
-    fontWeight: 'bold',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  statusText: {
+    fontSize: 11,
+    fontWeight: '600',
   },
   price: {
-    color: colors.text,
-    fontWeight: 'bold',
     fontSize: 13,
+    fontWeight: '700',
+    color: '#0F172A',
+  },
+  routeContainer: {
+    gap: 4,
   },
   routeRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
   },
-  routeDot: {
-    fontSize: 10,
+  greenDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#22C55E',
+  },
+  redDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 3,
+    backgroundColor: '#EF4444',
   },
   routeText: {
-    color: colors.text,
     fontSize: 13,
+    color: '#374151',
     flex: 1,
+    fontWeight: '500',
   },
   routeLine: {
     width: 1,
-    height: 10,
-    backgroundColor: colors.secondary,
-    marginLeft: 6,
-    marginVertical: 2,
+    height: 12,
+    backgroundColor: '#E2E8F0',
+    marginLeft: 4,
   },
   details: {
-    marginTop: 8,
+    marginTop: 4,
   },
   divider: {
     height: 1,
-    backgroundColor: colors.secondary,
+    backgroundColor: '#F1F5F9',
     marginVertical: 12,
   },
   detailRow: {
@@ -304,38 +322,38 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   detailLabel: {
-    color: colors.subtext,
-    fontSize: 13,
+    fontSize: 12,
+    color: '#94A3B8',
   },
   detailValue: {
-    color: colors.text,
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#0F172A',
+  },
+  trackBtn: {
+    marginTop: 10,
+    backgroundColor: '#0F172A',
+    borderRadius: 50,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  trackBtnText: {
+    color: '#FFFFFF',
+    fontWeight: '600',
     fontSize: 13,
-    fontWeight: 'bold',
   },
-  trackButton: {
+  reorderBtn: {
     marginTop: 10,
-    backgroundColor: colors.accent,
-    borderRadius: 8,
-    paddingVertical: 10,
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+    borderRadius: 50,
+    paddingVertical: 12,
     alignItems: 'center',
   },
-  trackText: {
-    color: colors.primary,
-    fontWeight: 'bold',
-    fontSize: 14,
-  },
-  reorderButton: {
-    marginTop: 10,
-    borderWidth: 1,
-    borderColor: colors.accent,
-    borderRadius: 8,
-    paddingVertical: 10,
-    alignItems: 'center',
-  },
-  reorderText: {
-    color: colors.accent,
-    fontWeight: 'bold',
-    fontSize: 14,
+  reorderBtnText: {
+    color: '#0F172A',
+    fontWeight: '600',
+    fontSize: 13,
   },
   empty: {
     flex: 1,
@@ -347,8 +365,8 @@ const styles = StyleSheet.create({
     fontSize: 48,
   },
   emptyText: {
-    color: colors.subtext,
-    fontSize: 16,
+    fontSize: 15,
+    color: '#94A3B8',
   },
 });
 

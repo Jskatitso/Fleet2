@@ -1,125 +1,128 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
-  View, Text, StyleSheet, ScrollView,
-  TouchableOpacity, TextInput,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity,
 } from 'react-native';
-import colors from '../../constants/colors';
 import { useAuth } from '../../context/AuthContext';
 
 const CustomerProfileScreen = ({ navigation }) => {
   const { logout } = useAuth();
-  const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState({
-    fullName: 'Ama Owusu',
-    email: 'ama@email.com',
-    telephone: '0241234567',
-    defaultAddress: 'East Legon, A&C Mall Area',
-    region: 'Greater Accra',
-  });
-
-  const updateField = (field, value) => {
-    setForm({ ...form, [field]: value });
-  };
 
   const handleLogout = async () => {
     await logout();
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'Welcome' }],
-    });
+    navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] });
   };
 
-  const stats = [
-    { label: 'Total Orders', value: '24' },
-    { label: 'Delivered', value: '21' },
-    { label: 'Cancelled', value: '3' },
+  const accountItems = [
+    {
+      icon: '🛡️',
+      title: 'Identity Verification',
+      subtitle: 'Ghana Card linked securely',
+      right: <Text style={styles.verifiedTag}>Verified</Text>,
+    },
+    {
+      icon: '📞',
+      title: 'Phone Number',
+      subtitle: '+233 55 123 4567',
+      right: null,
+    },
   ];
+
+  const preferenceItems = [
+    {
+      icon: '💳',
+      title: 'Payment Methods',
+      subtitle: 'Manage cards & mobile money',
+    },
+    {
+      icon: '🔔',
+      title: 'Push Notifications',
+      subtitle: null,
+      right: <Text style={styles.enabledTag}>Enabled</Text>,
+    },
+  ];
+
+  const supportItems = [
+    {
+      icon: '❓',
+      title: 'Help & Support',
+      subtitle: 'FAQ and contact us',
+      onPress: () => {},
+    },
+    {
+      icon: '📄',
+      title: 'Terms & Privacy Policy',
+      subtitle: null,
+      onPress: () => {},
+    },
+  ];
+
+  const renderItem = (item, index, arr) => (
+    <TouchableOpacity
+      key={item.title}
+      style={[styles.menuItem, index < arr.length - 1 && styles.menuItemBorder]}
+      onPress={item.onPress}
+      activeOpacity={0.7}
+    >
+      <View style={styles.menuIconBox}>
+        <Text style={styles.menuIcon}>{item.icon}</Text>
+      </View>
+      <View style={styles.menuText}>
+        <Text style={styles.menuTitle}>{item.title}</Text>
+        {item.subtitle && (
+          <Text style={styles.menuSubtitle}>{item.subtitle}</Text>
+        )}
+      </View>
+      {item.right ? item.right : <Text style={styles.chevron}>›</Text>}
+    </TouchableOpacity>
+  );
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
 
-      {/* Avatar & Name */}
+      {/* Header */}
+      <Text style={styles.pageTitle}>My Profile</Text>
+
+      {/* Avatar & Info */}
       <View style={styles.profileHeader}>
         <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{form.fullName.charAt(0)}</Text>
-        </View>
-        <Text style={styles.profileName}>{form.fullName}</Text>
-        <View style={styles.badge}>
-          <Text style={styles.badgeText}>✅ Verified Customer</Text>
-        </View>
-      </View>
-
-      {/* Stats Row */}
-      <View style={styles.statsRow}>
-        {stats.map((s) => (
-          <View key={s.label} style={styles.statCard}>
-            <Text style={styles.statValue}>{s.value}</Text>
-            <Text style={styles.statLabel}>{s.label}</Text>
+          <Text style={styles.avatarText}>KM</Text>
+          <View style={styles.verifiedDot}>
+            <Text style={{ fontSize: 8 }}>✓</Text>
           </View>
-        ))}
+        </View>
+        <View style={styles.profileInfo}>
+          <Text style={styles.profileName}>Kwame Mensah</Text>
+          <Text style={styles.profileEmail}>kwame.mensah@example.com</Text>
+        </View>
       </View>
 
-      {/* Edit Toggle */}
-      <TouchableOpacity
-        style={styles.editButton}
-        onPress={() => setEditing(!editing)}
-      >
-        <Text style={styles.editButtonText}>{editing ? 'Cancel' : 'Edit Profile'}</Text>
+      {/* ACCOUNT Section */}
+      <Text style={styles.sectionLabel}>ACCOUNT</Text>
+      <View style={styles.menuCard}>
+        {accountItems.map((item, i) => renderItem(item, i, accountItems))}
+      </View>
+
+      {/* PREFERENCES Section */}
+      <Text style={styles.sectionLabel}>PREFERENCES</Text>
+      <View style={styles.menuCard}>
+        {preferenceItems.map((item, i) => renderItem(item, i, preferenceItems))}
+      </View>
+
+      {/* SUPPORT Section */}
+      <Text style={styles.sectionLabel}>SUPPORT</Text>
+      <View style={styles.menuCard}>
+        {supportItems.map((item, i) => renderItem(item, i, supportItems))}
+      </View>
+
+      {/* Log Out */}
+      <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
+        <Text style={styles.logoutIcon}>→</Text>
+        <Text style={styles.logoutText}>Log Out</Text>
       </TouchableOpacity>
 
-      {/* Personal Info */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Personal Info</Text>
-        {[
-          { label: 'Full Name', key: 'fullName' },
-          { label: 'Email', key: 'email' },
-          { label: 'Telephone', key: 'telephone' },
-          { label: 'Default Address', key: 'defaultAddress' },
-          { label: 'Region', key: 'region' },
-        ].map((field) => (
-          <View key={field.key} style={styles.fieldRow}>
-            <Text style={styles.fieldLabel}>{field.label}</Text>
-            {editing ? (
-              <TextInput
-                style={styles.fieldInput}
-                value={form[field.key]}
-                onChangeText={(val) => updateField(field.key, val)}
-                placeholderTextColor={colors.subtext}
-              />
-            ) : (
-              <Text style={styles.fieldValue}>{form[field.key]}</Text>
-            )}
-          </View>
-        ))}
-      </View>
-
-      {editing && (
-        <TouchableOpacity style={styles.saveButton} onPress={() => setEditing(false)}>
-          <Text style={styles.saveButtonText}>Save Changes</Text>
-        </TouchableOpacity>
-      )}
-
-      {/* Payment Methods */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Payment Methods</Text>
-        <View style={styles.paymentRow}>
-          <Text style={styles.paymentIcon}>📱</Text>
-          <View style={styles.paymentInfo}>
-            <Text style={styles.paymentName}>MTN Mobile Money</Text>
-            <Text style={styles.paymentNumber}>0241234567</Text>
-          </View>
-          <View style={styles.defaultTag}>
-            <Text style={styles.defaultTagText}>Default</Text>
-          </View>
-        </View>
-        <TouchableOpacity style={styles.addPaymentButton}>
-          <Text style={styles.addPaymentText}>+ Add Payment Method</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Logout */}
-      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-        <Text style={styles.logoutText}>Log Out</Text>
+      {/* Delete Account */}
+      <TouchableOpacity style={styles.deleteBtn}>
+        <Text style={styles.deleteText}>🗑  Delete Account</Text>
       </TouchableOpacity>
 
     </ScrollView>
@@ -129,190 +132,161 @@ const CustomerProfileScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.primary,
+    backgroundColor: '#FFFFFF',
   },
   content: {
-    padding: 20,
-    paddingTop: 50,
+    paddingHorizontal: 20,
+    paddingTop: 56,
     paddingBottom: 60,
   },
+  pageTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#0F172A',
+    textAlign: 'center',
+    marginBottom: 24,
+  },
   profileHeader: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
+    gap: 14,
+    marginBottom: 28,
   },
   avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: colors.accent,
-    justifyContent: 'center',
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#E2E8F0',
     alignItems: 'center',
-    marginBottom: 12,
+    justifyContent: 'center',
   },
   avatarText: {
-    color: colors.primary,
-    fontSize: 32,
-    fontWeight: 'bold',
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#475569',
+  },
+  verifiedDot: {
+    position: 'absolute',
+    bottom: 2,
+    right: 2,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: '#22C55E',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#fff',
+  },
+  profileInfo: {
+    flex: 1,
   },
   profileName: {
-    color: colors.text,
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginBottom: 6,
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#0F172A',
   },
-  badge: {
-    backgroundColor: colors.surface,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: colors.accent,
-  },
-  badgeText: {
-    color: colors.accent,
+  profileEmail: {
     fontSize: 12,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    gap: 10,
-    marginBottom: 20,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    padding: 14,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.secondary,
-  },
-  statValue: {
-    color: colors.accent,
-    fontSize: 22,
-    fontWeight: 'bold',
-  },
-  statLabel: {
-    color: colors.subtext,
-    fontSize: 11,
-    marginTop: 4,
-    textAlign: 'center',
-  },
-  editButton: {
-    borderWidth: 1,
-    borderColor: colors.accent,
-    borderRadius: 8,
-    paddingVertical: 10,
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  editButtonText: {
-    color: colors.accent,
-    fontWeight: 'bold',
-  },
-  section: {
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: colors.secondary,
-  },
-  sectionTitle: {
-    color: colors.text,
-    fontWeight: 'bold',
-    fontSize: 15,
-    marginBottom: 14,
-  },
-  fieldRow: {
-    marginBottom: 14,
-  },
-  fieldLabel: {
-    color: colors.subtext,
-    fontSize: 12,
-    marginBottom: 4,
-  },
-  fieldValue: {
-    color: colors.text,
-    fontSize: 14,
-  },
-  fieldInput: {
-    backgroundColor: colors.primary,
-    color: colors.text,
-    borderRadius: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    fontSize: 14,
-    borderWidth: 1,
-    borderColor: colors.secondary,
-  },
-  saveButton: {
-    backgroundColor: colors.accent,
-    paddingVertical: 14,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  saveButtonText: {
-    color: colors.primary,
-    fontWeight: 'bold',
-    fontSize: 15,
-  },
-  paymentRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginBottom: 14,
-  },
-  paymentIcon: {
-    fontSize: 28,
-  },
-  paymentInfo: {
-    flex: 1,
-  },
-  paymentName: {
-    color: colors.text,
-    fontWeight: 'bold',
-    fontSize: 14,
-  },
-  paymentNumber: {
-    color: colors.subtext,
-    fontSize: 12,
+    color: '#94A3B8',
     marginTop: 2,
   },
-  defaultTag: {
-    backgroundColor: colors.accent,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  defaultTagText: {
-    color: colors.primary,
+  sectionLabel: {
     fontSize: 11,
-    fontWeight: 'bold',
+    fontWeight: '700',
+    color: '#94A3B8',
+    letterSpacing: 0.8,
+    marginBottom: 8,
+    marginTop: 4,
   },
-  addPaymentButton: {
+  menuCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: colors.secondary,
-    borderRadius: 8,
-    paddingVertical: 10,
+    borderColor: '#F1F5F9',
+    marginBottom: 20,
+    overflow: 'hidden',
+  },
+  menuItem: {
+    flexDirection: 'row',
     alignItems: 'center',
-    borderStyle: 'dashed',
-  },
-  addPaymentText: {
-    color: colors.subtext,
-    fontSize: 13,
-  },
-  logoutButton: {
-    borderWidth: 1,
-    borderColor: colors.error,
+    paddingHorizontal: 16,
     paddingVertical: 14,
-    borderRadius: 10,
+    gap: 12,
+  },
+  menuItemBorder: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+  },
+  menuIconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 8,
+    backgroundColor: '#F8FAFC',
     alignItems: 'center',
+    justifyContent: 'center',
+  },
+  menuIcon: {
+    fontSize: 16,
+  },
+  menuText: {
+    flex: 1,
+  },
+  menuTitle: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#0F172A',
+  },
+  menuSubtitle: {
+    fontSize: 11,
+    color: '#94A3B8',
+    marginTop: 2,
+  },
+  chevron: {
+    fontSize: 20,
+    color: '#CBD5E1',
+  },
+  verifiedTag: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#22C55E',
+  },
+  enabledTag: {
+    fontSize: 12,
+    color: '#94A3B8',
+  },
+  logoutBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: 12,
+    paddingVertical: 14,
+    marginBottom: 12,
+  },
+  logoutIcon: {
+    fontSize: 16,
+    color: '#374151',
   },
   logoutText: {
-    color: colors.error,
-    fontWeight: 'bold',
-    fontSize: 15,
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+  },
+  deleteBtn: {
+    alignItems: 'center',
+    paddingVertical: 14,
+    borderWidth: 1,
+    borderColor: '#FEE2E2',
+    borderRadius: 12,
+    backgroundColor: '#FFF5F5',
+  },
+  deleteText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#EF4444',
   },
 });
 

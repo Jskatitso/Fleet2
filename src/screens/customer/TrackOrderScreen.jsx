@@ -2,160 +2,165 @@ import React from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
 } from 'react-native';
-import colors from '../../constants/colors';
-
-const STEPS = [
-  { key: 'placed',   label: 'Order Placed',       icon: '📋', desc: 'Your order has been received' },
-  { key: 'assigned', label: 'Rider Assigned',      icon: '🏍️', desc: 'A rider has been assigned' },
-  { key: 'pickup',   label: 'Package Picked Up',   icon: '📦', desc: 'Rider collected your package' },
-  { key: 'transit',  label: 'In Transit',          icon: '🚚', desc: 'Your package is on the way' },
-  { key: 'delivered',label: 'Delivered',           icon: '✅', desc: 'Package delivered successfully' },
-];
-
-const STATUS_STEP = {
-  'Order Placed':   0,
-  'Rider Assigned': 1,
-  'Picked Up':      2,
-  'In Transit':     3,
-  'Delivered':      4,
-};
-
-const MOCK_TIMESTAMPS = [
-  'Today, 8:00 AM',
-  'Today, 8:12 AM',
-  'Today, 8:45 AM',
-  'Today, 9:10 AM',
-  null,
-];
 
 const TrackOrderScreen = ({ navigation, route }) => {
   const order = route?.params?.order ?? {
-    id: 'FLT-002',
-    from: 'Tema Station',
-    to: 'Madina Market',
+    id: 'FLT-8923-XYZ',
+    from: '124 Accra Rd, Central',
+    to: 'East Legon, near A&C Mall',
     status: 'In Transit',
-    price: 'GHS 80.00',
-    packageType: 'Heavy Load',
-    rider: 'Kofi B.',
-    riderRating: '4.7',
-    riderPhone: '0551234567',
+    price: 'GHS 37.50',
+    packageType: 'Package/Box',
+    rider: 'Samuel Ofori',
+    riderVehicle: 'Toyota Hiace',
+    riderPlate: 'GR-452-22',
+    riderRating: '4.8',
+    riderTrips: '1.2k',
+    eta: '12 min',
+    distance: '3.5 km',
   };
 
-  const activeIndex = STATUS_STEP[order.status] ?? 3;
+  const trackingUpdates = [
+    {
+      id: '1',
+      label: 'Order Placed',
+      time: '10:23 AM',
+      desc: order.from,
+      done: true,
+    },
+    {
+      id: '2',
+      label: 'Driver Assigned',
+      time: '10:25 AM',
+      desc: `${order.rider} (${order.riderVehicle})`,
+      done: true,
+    },
+    {
+      id: '3',
+      label: 'Package Picked Up',
+      time: '',
+      desc: 'Pending',
+      done: false,
+    },
+    {
+      id: '4',
+      label: 'Delivered',
+      time: '',
+      desc: 'Pending',
+      done: false,
+    },
+  ];
 
   return (
     <View style={styles.container}>
 
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.backText}>← Back</Text>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+          <Text style={styles.backIcon}>‹</Text>
         </TouchableOpacity>
-        <Text style={styles.pageTitle}>Track Order</Text>
-        <Text style={styles.orderId}>{order.id}</Text>
+        <Text style={styles.headerTitle}>Live Tracking</Text>
+        <View style={{ width: 32 }} />
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
-
-        {/* Route Card */}
-        <View style={styles.routeCard}>
-          <View style={styles.routeRow}>
-            <Text style={styles.routeDot}>🟢</Text>
-            <View>
-              <Text style={styles.routeLabel}>Pickup</Text>
-              <Text style={styles.routeValue}>{order.from}</Text>
-            </View>
-          </View>
-          <View style={styles.routeDivider} />
-          <View style={styles.routeRow}>
-            <Text style={styles.routeDot}>🔴</Text>
-            <View>
-              <Text style={styles.routeLabel}>Dropoff</Text>
-              <Text style={styles.routeValue}>{order.to}</Text>
-            </View>
-          </View>
+      {/* Map Placeholder */}
+      <View style={styles.mapPlaceholder}>
+        <View style={styles.mapPin}>
+          <Text style={styles.mapPinIcon}>📍</Text>
+          <Text style={styles.mapPinLabel}>Drop-off</Text>
         </View>
+        <Text style={styles.mapLabel}>Map View</Text>
+      </View>
 
-        {/* ETA Banner */}
-        {order.status !== 'Delivered' && order.status !== 'Cancelled' && (
-          <View style={styles.etaBanner}>
-            <Text style={styles.etaLabel}>Estimated Arrival</Text>
-            <Text style={styles.etaValue}>~25 minutes</Text>
+      {/* Bottom Sheet */}
+      <ScrollView style={styles.bottomSheet} showsVerticalScrollIndicator={false}>
+
+        {/* ETA Row */}
+        <View style={styles.etaRow}>
+          <View>
+            <Text style={styles.etaTime}>{order.eta}</Text>
+            <Text style={styles.etaSubLabel}>Estimated delivery time</Text>
           </View>
-        )}
-
-        {/* Timeline */}
-        <Text style={styles.sectionTitle}>Delivery Status</Text>
-        <View style={styles.timeline}>
-          {STEPS.map((step, index) => {
-            const isCompleted = index < activeIndex;
-            const isActive    = index === activeIndex;
-            const isPending   = index > activeIndex;
-
-            return (
-              <View key={step.key} style={styles.timelineRow}>
-
-                {/* Left column: dot + line */}
-                <View style={styles.timelineLeft}>
-                  <View style={[
-                    styles.dot,
-                    isCompleted && styles.dotCompleted,
-                    isActive    && styles.dotActive,
-                    isPending   && styles.dotPending,
-                  ]}>
-                    {isCompleted && <Text style={styles.dotCheck}>✓</Text>}
-                    {isActive    && <View style={styles.dotPulse} />}
-                  </View>
-                  {index < STEPS.length - 1 && (
-                    <View style={[styles.line, isCompleted && styles.lineCompleted]} />
-                  )}
-                </View>
-
-                {/* Right column: text */}
-                <View style={styles.timelineContent}>
-                  <View style={styles.timelineHeader}>
-                    <Text style={[
-                      styles.stepLabel,
-                      isCompleted && styles.stepLabelDone,
-                      isActive    && styles.stepLabelActive,
-                      isPending   && styles.stepLabelPending,
-                    ]}>
-                      {step.icon}  {step.label}
-                    </Text>
-                    {isActive && (
-                      <View style={styles.activeBadge}>
-                        <Text style={styles.activeBadgeText}>Live</Text>
-                      </View>
-                    )}
-                  </View>
-                  <Text style={styles.stepDesc}>
-                    {isPending ? 'Pending' : MOCK_TIMESTAMPS[index] ?? step.desc}
-                  </Text>
-                </View>
-
-              </View>
-            );
-          })}
+          <View style={styles.etaDivider} />
+          <View>
+            <Text style={styles.etaTime}>{order.distance}</Text>
+            <Text style={styles.etaSubLabel}>Distance remaining</Text>
+          </View>
         </View>
 
         {/* Rider Info */}
-        {order.status !== 'Cancelled' && (
-          <View style={styles.riderCard}>
-            <Text style={styles.sectionTitle}>Your Rider</Text>
-            <View style={styles.riderRow}>
-              <View style={styles.riderAvatar}>
-                <Text style={styles.riderAvatarText}>{order.rider?.charAt(0)}</Text>
-              </View>
-              <View style={styles.riderInfo}>
-                <Text style={styles.riderName}>{order.rider}</Text>
-                <Text style={styles.riderRating}>⭐ {order.riderRating ?? '4.8'} · {order.packageType}</Text>
-              </View>
-              <TouchableOpacity style={styles.callButton}>
-                <Text style={styles.callIcon}>📞</Text>
-              </TouchableOpacity>
-            </View>
+        <View style={styles.riderRow}>
+          <View style={styles.riderAvatar}>
+            <Text style={styles.riderAvatarText}>
+              {order.rider.charAt(0)}
+            </Text>
           </View>
-        )}
+          <View style={styles.riderInfo}>
+            <Text style={styles.riderName}>{order.rider}</Text>
+            <Text style={styles.riderDetails}>
+              {order.riderVehicle} · {order.riderPlate}
+            </Text>
+            <Text style={styles.riderRating}>⭐ {order.riderRating} · {order.riderTrips} trips</Text>
+          </View>
+          <View style={styles.riderActions}>
+            <TouchableOpacity style={styles.riderActionBtn}>
+              <Text style={styles.riderActionIcon}>📞</Text>
+              <Text style={styles.riderActionLabel}>Call Driver</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.riderActionBtn, styles.riderActionBtnGreen]}>
+              <Text style={styles.riderActionIcon}>💬</Text>
+              <Text style={[styles.riderActionLabel, { color: '#fff' }]}>Message</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Order ID */}
+        <View style={styles.orderIdRow}>
+          <View style={styles.orderIdLeft}>
+            <Text style={styles.orderIdIcon}>📦</Text>
+            <Text style={styles.orderIdText}>#{order.id}</Text>
+          </View>
+          <TouchableOpacity>
+            <Text style={styles.orderIdMenu}>⋯</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Tracking Updates */}
+        <Text style={styles.sectionTitle}>Tracking Updates</Text>
+        <View style={styles.timeline}>
+          {trackingUpdates.map((update, index) => (
+            <View key={update.id} style={styles.timelineRow}>
+              <View style={styles.timelineLeft}>
+                <View style={[
+                  styles.timelineDot,
+                  update.done ? styles.timelineDotDone : styles.timelineDotPending,
+                ]}>
+                  {update.done && <Text style={styles.timelineDotCheck}>✓</Text>}
+                </View>
+                {index < trackingUpdates.length - 1 && (
+                  <View style={[
+                    styles.timelineLine,
+                    update.done && styles.timelineLineDone,
+                  ]} />
+                )}
+              </View>
+              <View style={styles.timelineContent}>
+                <View style={styles.timelineTopRow}>
+                  <Text style={[
+                    styles.timelineLabel,
+                    update.done ? styles.timelineLabelDone : styles.timelineLabelPending,
+                  ]}>
+                    {update.label}
+                  </Text>
+                  {update.time ? (
+                    <Text style={styles.timelineTime}>{update.time}</Text>
+                  ) : null}
+                </View>
+                <Text style={styles.timelineDesc}>{update.desc}</Text>
+              </View>
+            </View>
+          ))}
+        </View>
 
       </ScrollView>
     </View>
@@ -165,226 +170,260 @@ const TrackOrderScreen = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.primary,
-    paddingHorizontal: 20,
-    paddingTop: 50,
+    backgroundColor: '#FFFFFF',
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingTop: 56,
+    paddingBottom: 12,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
+    backgroundColor: 'rgba(255,255,255,0.95)',
+  },
+  backBtn: { padding: 4 },
+  backIcon: {
+    fontSize: 28,
+    color: '#0F172A',
+    lineHeight: 28,
+  },
+  headerTitle: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#0F172A',
+  },
+  mapPlaceholder: {
+    height: 260,
+    backgroundColor: '#E2E8F0',
+    marginTop: 100,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  mapPin: {
+    alignItems: 'center',
+    position: 'absolute',
+    top: 60,
+    right: 80,
+  },
+  mapPinIcon: {
+    fontSize: 28,
+  },
+  mapPinLabel: {
+    fontSize: 10,
+    color: '#0F172A',
+    fontWeight: '600',
+    backgroundColor: '#fff',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    marginTop: 2,
+  },
+  mapLabel: {
+    fontSize: 13,
+    color: '#94A3B8',
+  },
+  bottomSheet: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    marginTop: -20,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+  },
+  etaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 20,
     marginBottom: 20,
   },
-  backText: {
-    color: colors.accent,
-    fontSize: 14,
+  etaTime: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#0F172A',
   },
-  pageTitle: {
-    color: colors.text,
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  orderId: {
-    color: colors.accent,
-    fontSize: 13,
-    fontWeight: 'bold',
-  },
-  routeCard: {
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: colors.secondary,
-    marginBottom: 12,
-  },
-  routeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  routeDot: {
-    fontSize: 14,
-  },
-  routeLabel: {
-    color: colors.subtext,
+  etaSubLabel: {
     fontSize: 11,
-    marginBottom: 2,
+    color: '#94A3B8',
+    marginTop: 2,
   },
-  routeValue: {
-    color: colors.text,
-    fontWeight: 'bold',
-    fontSize: 14,
-  },
-  routeDivider: {
+  etaDivider: {
     width: 1,
-    height: 16,
-    backgroundColor: colors.secondary,
-    marginLeft: 7,
-    marginVertical: 4,
-  },
-  etaBanner: {
-    backgroundColor: colors.surface,
-    borderRadius: 10,
-    padding: 14,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.accent,
-    marginBottom: 24,
-  },
-  etaLabel: {
-    color: colors.subtext,
-    fontSize: 13,
-  },
-  etaValue: {
-    color: colors.accent,
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  sectionTitle: {
-    color: colors.text,
-    fontSize: 15,
-    fontWeight: 'bold',
-    marginBottom: 16,
-  },
-  timeline: {
-    marginBottom: 24,
-  },
-  timelineRow: {
-    flexDirection: 'row',
-    gap: 14,
-  },
-  timelineLeft: {
-    alignItems: 'center',
-    width: 28,
-  },
-  dot: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-  },
-  dotCompleted: {
-    backgroundColor: colors.accent,
-    borderColor: colors.accent,
-  },
-  dotActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.accent,
-  },
-  dotPending: {
-    backgroundColor: colors.surface,
-    borderColor: colors.secondary,
-  },
-  dotCheck: {
-    color: colors.primary,
-    fontWeight: 'bold',
-    fontSize: 13,
-  },
-  dotPulse: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: colors.accent,
-  },
-  line: {
-    width: 2,
-    flex: 1,
-    minHeight: 32,
-    backgroundColor: colors.secondary,
-    marginVertical: 2,
-  },
-  lineCompleted: {
-    backgroundColor: colors.accent,
-  },
-  timelineContent: {
-    flex: 1,
-    paddingBottom: 24,
-  },
-  timelineHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 4,
-  },
-  stepLabel: {
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  stepLabelDone: {
-    color: colors.accent,
-  },
-  stepLabelActive: {
-    color: colors.text,
-  },
-  stepLabelPending: {
-    color: colors.subtext,
-  },
-  activeBadge: {
-    backgroundColor: colors.accent,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 10,
-  },
-  activeBadgeText: {
-    color: colors.primary,
-    fontSize: 10,
-    fontWeight: 'bold',
-  },
-  stepDesc: {
-    color: colors.subtext,
-    fontSize: 12,
-  },
-  riderCard: {
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: colors.secondary,
+    height: 36,
+    backgroundColor: '#E2E8F0',
   },
   riderRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+    marginBottom: 14,
   },
   riderAvatar: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    backgroundColor: colors.accent,
-    justifyContent: 'center',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#E2E8F0',
     alignItems: 'center',
+    justifyContent: 'center',
   },
   riderAvatarText: {
-    color: colors.primary,
-    fontWeight: 'bold',
-    fontSize: 18,
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#475569',
   },
   riderInfo: {
     flex: 1,
   },
   riderName: {
-    color: colors.text,
-    fontWeight: 'bold',
-    fontSize: 15,
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#0F172A',
+  },
+  riderDetails: {
+    fontSize: 11,
+    color: '#6B7280',
+    marginTop: 1,
   },
   riderRating: {
-    color: colors.subtext,
-    fontSize: 12,
-    marginTop: 2,
+    fontSize: 11,
+    color: '#6B7280',
+    marginTop: 1,
   },
-  callButton: {
-    backgroundColor: colors.surface,
+  riderActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  riderActionBtn: {
+    alignItems: 'center',
     borderWidth: 1,
-    borderColor: colors.accent,
+    borderColor: '#E2E8F0',
     borderRadius: 10,
-    padding: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    gap: 2,
   },
-  callIcon: {
+  riderActionBtnGreen: {
+    backgroundColor: '#16A34A',
+    borderColor: '#16A34A',
+  },
+  riderActionIcon: {
+    fontSize: 14,
+  },
+  riderActionLabel: {
+    fontSize: 9,
+    fontWeight: '600',
+    color: '#374151',
+  },
+  orderIdRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    marginBottom: 20,
+  },
+  orderIdLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  orderIdIcon: {
+    fontSize: 16,
+  },
+  orderIdText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#0F172A',
+  },
+  orderIdMenu: {
     fontSize: 18,
+    color: '#94A3B8',
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#0F172A',
+    marginBottom: 16,
+  },
+  timeline: {
+    paddingBottom: 40,
+  },
+  timelineRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  timelineLeft: {
+    alignItems: 'center',
+    width: 24,
+  },
+  timelineDot: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  timelineDotDone: {
+    backgroundColor: '#22C55E',
+    borderColor: '#22C55E',
+  },
+  timelineDotPending: {
+    backgroundColor: '#fff',
+    borderColor: '#E2E8F0',
+  },
+  timelineDotCheck: {
+    color: '#fff',
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  timelineLine: {
+    width: 2,
+    flex: 1,
+    minHeight: 28,
+    backgroundColor: '#E2E8F0',
+    marginVertical: 2,
+  },
+  timelineLineDone: {
+    backgroundColor: '#22C55E',
+  },
+  timelineContent: {
+    flex: 1,
+    paddingBottom: 20,
+  },
+  timelineTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  timelineLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  timelineLabelDone: {
+    color: '#0F172A',
+  },
+  timelineLabelPending: {
+    color: '#94A3B8',
+  },
+  timelineTime: {
+    fontSize: 11,
+    color: '#94A3B8',
+  },
+  timelineDesc: {
+    fontSize: 11,
+    color: '#6B7280',
+    marginTop: 2,
   },
 });
 
