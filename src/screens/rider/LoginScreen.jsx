@@ -1,16 +1,42 @@
 import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity,
-  StyleSheet, KeyboardAvoidingView, Platform,
+  StyleSheet, KeyboardAvoidingView, Platform, Alert,
 } from 'react-native';
+import { useAuth } from '../../context/AuthContext';
 
 const LoginScreen = ({ navigation }) => {
+  const { login } = useAuth();
   const [emailOrPhone, setEmailOrPhone] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = () => {
-    navigation.navigate('RiderHome');
+  const handleLogin = async () => {
+    if (!emailOrPhone || !password) {
+      Alert.alert('Missing Fields', 'Please fill in all fields.');
+      return;
+    }
+    try {
+      setLoading(true);
+      // Replace with real API call later
+      const mockToken = 'rider_mock_token_123';
+      const mockUser = {
+        id: '1',
+        name: 'Kwame Mensah',
+        email: emailOrPhone,
+        phone: emailOrPhone,
+        vehicleType: 'Motorbike',
+        rating: 4.8,
+        region: 'Greater Accra',
+      };
+      await login(mockToken, mockUser, 'rider');
+      navigation.reset({ index: 0, routes: [{ name: 'RiderHome' }] });
+    } catch (error) {
+      Alert.alert('Login Failed', 'Please check your credentials and try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -70,8 +96,14 @@ const LoginScreen = ({ navigation }) => {
         </TouchableOpacity>
 
         {/* Sign In Button */}
-        <TouchableOpacity style={styles.button} onPress={handleLogin}>
-          <Text style={styles.buttonText}>Sign In</Text>
+        <TouchableOpacity
+          style={[styles.button, loading && styles.buttonDisabled]}
+          onPress={handleLogin}
+          disabled={loading}
+        >
+          <Text style={styles.buttonText}>
+            {loading ? 'Signing in...' : 'Sign In'}
+          </Text>
         </TouchableOpacity>
 
         {/* Sign up link */}
@@ -162,6 +194,9 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     alignItems: 'center',
     marginTop: 28,
+  },
+  buttonDisabled: {
+    backgroundColor: '#94A3B8',
   },
   buttonText: {
     color: '#FFFFFF',

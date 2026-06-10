@@ -1,18 +1,23 @@
 import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity,
-  StyleSheet, ScrollView, KeyboardAvoidingView, Platform,
+  StyleSheet, ScrollView, KeyboardAvoidingView,
+  Platform, Alert,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
+import { useAuth } from '../../context/AuthContext';
 import regions from '../../constants/regions';
 
 const vehicleTypes = [
-  { label: 'Motorbike', value: 'motorbike' },
-  { label: 'Standard Car', value: 'car' },
-  { label: 'Van / Mini Truck', value: 'van' },
+  { label: 'Motorbike', value: 'motorbike', icon: '🏍️' },
+  { label: 'Standard Car', value: 'car', icon: '🚗' },
+  { label: 'Van / Mini Truck', value: 'van', icon: '🚐' },
 ];
 
 const SignupScreen = ({ navigation }) => {
+  const { login } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({
     fullName: '',
     ghanaCardNumber: '',
@@ -23,14 +28,45 @@ const SignupScreen = ({ navigation }) => {
     email: '',
     password: '',
   });
-  const [showPassword, setShowPassword] = useState(false);
 
   const updateField = (field, value) => setForm({ ...form, [field]: value });
 
-  const handleSignup = () => {
-    console.log('Rider signup:', form);
-    // API call goes here
-    navigation.navigate('RiderHome');
+  const handleSignup = async () => {
+    if (!form.fullName || !form.telephone || !form.password || !form.ghanaCardNumber) {
+      Alert.alert('Missing Fields', 'Please fill in all required fields.');
+      return;
+    }
+    if (!form.vehicleType) {
+      Alert.alert('Vehicle Required', 'Please select a vehicle type.');
+      return;
+    }
+    if (!form.region) {
+      Alert.alert('Region Required', 'Please select your region.');
+      return;
+    }
+    try {
+      setLoading(true);
+      // Replace with real API call later
+      const mockToken = 'rider_mock_token_123';
+      const mockUser = {
+        id: '1',
+        name: form.fullName,
+        email: form.email,
+        phone: form.telephone,
+        momoNumber: form.momoNumber,
+        region: form.region,
+        vehicleType: form.vehicleType,
+        ghanaCardNumber: form.ghanaCardNumber,
+        rating: 5.0,
+        deliveries: 0,
+      };
+      await login(mockToken, mockUser, 'rider');
+      navigation.reset({ index: 0, routes: [{ name: 'RiderHome' }] });
+    } catch (error) {
+      Alert.alert('Signup Failed', 'Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -65,7 +101,7 @@ const SignupScreen = ({ navigation }) => {
           />
         </View>
 
-        {/* Ghana Card Number */}
+        {/* Ghana Card */}
         <Text style={styles.label}>Ghana Card Number</Text>
         <View style={styles.inputWrapper}>
           <Text style={styles.inputIcon}>🪪</Text>
@@ -93,7 +129,7 @@ const SignupScreen = ({ navigation }) => {
           />
         </View>
 
-        {/* MoMo Number */}
+        {/* MoMo */}
         <Text style={styles.label}>MoMo Number</Text>
         <View style={styles.inputWrapper}>
           <Text style={styles.inputIcon}>💛</Text>
@@ -134,9 +170,7 @@ const SignupScreen = ({ navigation }) => {
               ]}
               onPress={() => updateField('vehicleType', v.value)}
             >
-              <Text style={styles.vehicleIcon}>
-                {v.value === 'motorbike' ? '🏍️' : v.value === 'car' ? '🚗' : '🚐'}
-              </Text>
+              <Text style={styles.vehicleIcon}>{v.icon}</Text>
               <Text style={[
                 styles.vehicleLabel,
                 form.vehicleType === v.value && styles.vehicleLabelActive,
@@ -180,8 +214,14 @@ const SignupScreen = ({ navigation }) => {
         </View>
 
         {/* Create Account Button */}
-        <TouchableOpacity style={styles.button} onPress={handleSignup}>
-          <Text style={styles.buttonText}>Create Account</Text>
+        <TouchableOpacity
+          style={[styles.button, loading && styles.buttonDisabled]}
+          onPress={handleSignup}
+          disabled={loading}
+        >
+          <Text style={styles.buttonText}>
+            {loading ? 'Creating Account...' : 'Create Account'}
+          </Text>
         </TouchableOpacity>
 
         {/* Legal */}
@@ -192,7 +232,7 @@ const SignupScreen = ({ navigation }) => {
           <Text style={styles.legalLink}>Privacy Policy</Text>
         </Text>
 
-        {/* Login link — FIXED: was 'Login', now 'RiderLogin' */}
+        {/* Login link */}
         <TouchableOpacity onPress={() => navigation.navigate('RiderLogin')}>
           <Text style={styles.loginLink}>
             Already have an account?{' '}
@@ -306,6 +346,9 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     alignItems: 'center',
     marginTop: 28,
+  },
+  buttonDisabled: {
+    backgroundColor: '#94A3B8',
   },
   buttonText: {
     color: '#FFFFFF',

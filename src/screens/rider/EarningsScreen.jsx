@@ -1,90 +1,132 @@
 import React, { useState } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity
+  View, Text, StyleSheet, ScrollView, TouchableOpacity,
 } from 'react-native';
-import colors from '../../constants/colors';
+
+const history = [
+  { id: '001', sender: 'Ama Asante', from: 'Accra Mall', to: 'East Legon', price: '₵ 35.00', date: 'Today, 10:30 AM', status: 'Completed' },
+  { id: '002', sender: 'Kofi Boateng', from: 'Tema Station', to: 'Madina', price: '₵ 80.00', date: 'Today, 8:00 AM', status: 'Completed' },
+  { id: '003', sender: 'Efua Mensah', from: 'Osu', to: 'Airport', price: '₵ 55.00', date: 'Yesterday, 3:00 PM', status: 'Completed' },
+  { id: '004', sender: 'Yaw Darko', from: 'Kaneshie', to: 'Lapaz', price: '₵ 25.00', date: 'Yesterday, 1:00 PM', status: 'Cancelled' },
+];
 
 const EarningsScreen = () => {
   const [activeTab, setActiveTab] = useState('earnings');
 
-  const history = [
-    { id: '001', sender: 'Ama Asante', from: 'Accra Mall', to: 'East Legon', price: 'GHS 35.00', date: 'Today, 10:30AM', status: 'Completed' },
-    { id: '002', sender: 'Kofi Boateng', from: 'Tema Station', to: 'Madina', price: 'GHS 80.00', date: 'Today, 8:00AM', status: 'Completed' },
-    { id: '003', sender: 'Efua Mensah', from: 'Osu', to: 'Airport', price: 'GHS 55.00', date: 'Yesterday, 3:00PM', status: 'Completed' },
-    { id: '004', sender: 'Yaw Darko', from: 'Kaneshie', to: 'Lapaz', price: 'GHS 25.00', date: 'Yesterday, 1:00PM', status: 'Cancelled' },
-  ];
-
   return (
     <View style={styles.container}>
-      <Text style={styles.pageTitle}>Earnings & History</Text>
+
+      {/* Header */}
+      <Text style={styles.pageTitle}>Earnings</Text>
 
       {/* Tab Switch */}
       <View style={styles.tabRow}>
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'earnings' && styles.activeTab]}
+          style={[styles.tab, activeTab === 'earnings' && styles.tabActive]}
           onPress={() => setActiveTab('earnings')}
         >
-          <Text style={[styles.tabText, activeTab === 'earnings' && styles.activeTabText]}>
+          <Text style={[styles.tabText, activeTab === 'earnings' && styles.tabTextActive]}>
             Earnings
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'history' && styles.activeTab]}
+          style={[styles.tab, activeTab === 'history' && styles.tabActive]}
           onPress={() => setActiveTab('history')}
         >
-          <Text style={[styles.tabText, activeTab === 'history' && styles.activeTabText]}>
+          <Text style={[styles.tabText, activeTab === 'history' && styles.tabTextActive]}>
             History
           </Text>
         </TouchableOpacity>
       </View>
 
       {activeTab === 'earnings' ? (
-        <ScrollView showsVerticalScrollIndicator={false}>
-          {/* Earnings Summary */}
-          <View style={styles.earningsCard}>
-            <Text style={styles.earningsLabel}>Total Earnings Today</Text>
-            <Text style={styles.earningsValue}>GHS 420.00</Text>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 30 }}>
+
+          {/* Balance Card */}
+          <View style={styles.balanceCard}>
+            <Text style={styles.balanceLabel}>Total Balance</Text>
+            <Text style={styles.balanceValue}>₵ 420.00</Text>
+            <View style={styles.balanceBtnRow}>
+              <TouchableOpacity style={styles.balanceBtn}>
+                <Text style={styles.balanceBtnText}>＋  Withdraw</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.balanceBtn}>
+                <Text style={styles.balanceBtnText}>↓  Cash Out</Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
+          {/* Stats Row */}
           <View style={styles.statsRow}>
             <View style={styles.statCard}>
               <Text style={styles.statValue}>12</Text>
               <Text style={styles.statLabel}>Deliveries</Text>
             </View>
             <View style={styles.statCard}>
-              <Text style={styles.statValue}>GHS 1,240</Text>
+              <Text style={styles.statValue}>₵ 1,240</Text>
               <Text style={styles.statLabel}>This Week</Text>
             </View>
             <View style={styles.statCard}>
-              <Text style={styles.statValue}>GHS 4,800</Text>
+              <Text style={styles.statValue}>₵ 4,800</Text>
               <Text style={styles.statLabel}>This Month</Text>
             </View>
           </View>
 
           {/* Payout Info */}
+          <Text style={styles.sectionTitle}>Payout Method</Text>
           <View style={styles.payoutCard}>
-            <Text style={styles.payoutTitle}>💰 Payout Info</Text>
-            <Text style={styles.payoutText}>MoMo Number: 024 123 4567</Text>
-            <Text style={styles.payoutText}>Next Payout: Friday, 30 Apr</Text>
+            <View style={styles.payoutRow}>
+              <View style={styles.payoutIconBox}>
+                <Text style={styles.payoutIcon}>💛</Text>
+              </View>
+              <View style={styles.payoutInfo}>
+                <Text style={styles.payoutName}>MTN Mobile Money</Text>
+                <Text style={styles.payoutNumber}>054 ••• 4567</Text>
+              </View>
+              <View style={styles.defaultBadge}>
+                <Text style={styles.defaultBadgeText}>Default</Text>
+              </View>
+            </View>
           </View>
+
+          {/* Next Payout */}
+          <View style={styles.nextPayoutCard}>
+            <Text style={styles.nextPayoutIcon}>📅</Text>
+            <View>
+              <Text style={styles.nextPayoutTitle}>Next Payout</Text>
+              <Text style={styles.nextPayoutDate}>Friday, 30 Apr</Text>
+            </View>
+          </View>
+
         </ScrollView>
       ) : (
-        <ScrollView showsVerticalScrollIndicator={false}>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 30 }}>
+          <Text style={styles.sectionTitle}>Recent Activity</Text>
           {history.map((item) => (
             <View key={item.id} style={styles.historyCard}>
-              <View style={styles.historyHeader}>
+              <View style={styles.historyIconBox}>
+                <Text style={styles.historyIcon}>
+                  {item.status === 'Completed' ? '📦' : '❌'}
+                </Text>
+              </View>
+              <View style={styles.historyDetails}>
                 <Text style={styles.historySender}>{item.sender}</Text>
+                <Text style={styles.historyRoute}>{item.from} → {item.to}</Text>
+                <Text style={styles.historyDate}>{item.date}</Text>
+              </View>
+              <View style={styles.historyRight}>
+                <Text style={[
+                  styles.historyPrice,
+                  { color: item.status === 'Cancelled' ? '#EF4444' : '#0F172A' },
+                ]}>
+                  {item.status === 'Cancelled' ? '-' : '+'}{item.price}
+                </Text>
                 <Text style={[
                   styles.historyStatus,
-                  { color: item.status === 'Completed' ? colors.accent : colors.error }
+                  { color: item.status === 'Completed' ? '#22C55E' : '#EF4444' },
                 ]}>
                   {item.status}
                 </Text>
-              </View>
-              <Text style={styles.historyRoute}>{item.from} → {item.to}</Text>
-              <View style={styles.historyFooter}>
-                <Text style={styles.historyDate}>{item.date}</Text>
-                <Text style={styles.historyPrice}>{item.price}</Text>
               </View>
             </View>
           ))}
@@ -97,22 +139,24 @@ const EarningsScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.primary,
+    backgroundColor: '#FFFFFF',
     paddingHorizontal: 20,
-    paddingTop: 50,
+    paddingTop: 56,
   },
   pageTitle: {
-    color: colors.text,
-    fontSize: 22,
-    fontWeight: 'bold',
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#0F172A',
     marginBottom: 20,
   },
   tabRow: {
     flexDirection: 'row',
-    backgroundColor: colors.surface,
+    backgroundColor: '#F8FAFC',
     borderRadius: 10,
     padding: 4,
     marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
   tab: {
     flex: 1,
@@ -120,117 +164,190 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 8,
   },
-  activeTab: {
-    backgroundColor: colors.accent,
+  tabActive: {
+    backgroundColor: '#0F172A',
   },
   tabText: {
-    color: colors.subtext,
-    fontWeight: 'bold',
+    color: '#94A3B8',
+    fontWeight: '600',
     fontSize: 14,
   },
-  activeTabText: {
-    color: colors.primary,
+  tabTextActive: {
+    color: '#FFFFFF',
   },
-  earningsCard: {
-    backgroundColor: colors.surface,
-    borderRadius: 12,
+  balanceCard: {
+    backgroundColor: '#16A34A',
+    borderRadius: 16,
     padding: 24,
     alignItems: 'center',
     marginBottom: 16,
-    borderWidth: 1,
-    borderColor: colors.accent,
+    gap: 8,
   },
-  earningsLabel: {
-    color: colors.subtext,
+  balanceLabel: {
+    color: '#BBF7D0',
     fontSize: 13,
-    marginBottom: 8,
   },
-  earningsValue: {
-    color: colors.accent,
+  balanceValue: {
+    color: '#FFFFFF',
     fontSize: 36,
-    fontWeight: 'bold',
+    fontWeight: '700',
+    letterSpacing: -0.5,
+  },
+  balanceBtnRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 8,
+  },
+  balanceBtn: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderRadius: 50,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
+  },
+  balanceBtnText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '600',
   },
   statsRow: {
     flexDirection: 'row',
     gap: 10,
-    marginBottom: 16,
+    marginBottom: 24,
   },
   statCard: {
     flex: 1,
-    backgroundColor: colors.surface,
-    borderRadius: 10,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 12,
     padding: 12,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: colors.secondary,
+    borderColor: '#E2E8F0',
   },
   statValue: {
-    color: colors.text,
     fontSize: 13,
-    fontWeight: 'bold',
+    fontWeight: '700',
+    color: '#0F172A',
   },
   statLabel: {
-    color: colors.subtext,
-    fontSize: 11,
+    fontSize: 10,
+    color: '#94A3B8',
     marginTop: 4,
+    textAlign: 'center',
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#0F172A',
+    marginBottom: 12,
   },
   payoutCard: {
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    padding: 16,
     borderWidth: 1,
-    borderColor: colors.secondary,
-    gap: 6,
+    borderColor: '#F1F5F9',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 12,
   },
-  payoutTitle: {
-    color: colors.text,
-    fontWeight: 'bold',
-    fontSize: 15,
-    marginBottom: 4,
+  payoutRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
-  payoutText: {
-    color: colors.subtext,
+  payoutIconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: '#FEF9C3',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  payoutIcon: { fontSize: 18 },
+  payoutInfo: { flex: 1 },
+  payoutName: {
     fontSize: 13,
+    fontWeight: '600',
+    color: '#0F172A',
+  },
+  payoutNumber: {
+    fontSize: 11,
+    color: '#94A3B8',
+    marginTop: 2,
+  },
+  defaultBadge: {
+    backgroundColor: '#F0FDF4',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  defaultBadgeText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#22C55E',
+  },
+  nextPayoutCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 12,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  nextPayoutIcon: { fontSize: 22 },
+  nextPayoutTitle: {
+    fontSize: 12,
+    color: '#94A3B8',
+  },
+  nextPayoutDate: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#0F172A',
+    marginTop: 2,
   },
   historyCard: {
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: colors.secondary,
-  },
-  historyHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 6,
+    alignItems: 'center',
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+    gap: 12,
   },
+  historyIconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: '#F0FDF4',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  historyIcon: { fontSize: 18 },
+  historyDetails: { flex: 1 },
   historySender: {
-    color: colors.text,
-    fontWeight: 'bold',
-    fontSize: 14,
-  },
-  historyStatus: {
     fontSize: 13,
-    fontWeight: 'bold',
+    fontWeight: '600',
+    color: '#0F172A',
   },
   historyRoute: {
-    color: colors.subtext,
-    fontSize: 12,
-    marginBottom: 8,
-  },
-  historyFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    fontSize: 11,
+    color: '#6B7280',
+    marginTop: 2,
   },
   historyDate: {
-    color: colors.subtext,
-    fontSize: 11,
+    fontSize: 10,
+    color: '#94A3B8',
+    marginTop: 2,
   },
+  historyRight: { alignItems: 'flex-end' },
   historyPrice: {
-    color: colors.accent,
-    fontWeight: 'bold',
     fontSize: 13,
+    fontWeight: '700',
+  },
+  historyStatus: {
+    fontSize: 11,
+    marginTop: 2,
+    fontWeight: '500',
   },
 });
 

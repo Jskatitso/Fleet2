@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView,
-  TouchableOpacity, Switch,
+  TouchableOpacity, Switch, Alert,
 } from 'react-native';
+import { useAuth } from '../../context/AuthContext';
 
-const pendingDeliveries = [
+const INITIAL_DELIVERIES = [
   {
     id: '001',
     sender: 'Ama Asante',
@@ -38,7 +39,47 @@ const pendingDeliveries = [
 ];
 
 const RiderDashboard = () => {
+  const { user } = useAuth();
   const [isOnline, setIsOnline] = useState(false);
+  const [deliveries, setDeliveries] = useState(INITIAL_DELIVERIES);
+
+  const handleToggleOnline = (value) => {
+    setIsOnline(value);
+    if (value) {
+      Alert.alert('You are Online', 'You will now receive delivery requests.');
+    } else {
+      Alert.alert('You are Offline', 'You will not receive delivery requests.');
+    }
+  };
+
+  const handleReject = (id) => {
+    Alert.alert(
+      'Reject Delivery',
+      'Are you sure you want to reject this request?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Reject',
+          style: 'destructive',
+          onPress: () => setDeliveries((prev) => prev.filter((d) => d.id !== id)),
+        },
+      ]
+    );
+  };
+
+  const handleAccept = (delivery) => {
+    setDeliveries((prev) => prev.filter((d) => d.id !== delivery.id));
+    navigation.navigate('ActiveDelivery', { delivery });
+  };
+
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good Morning,';
+    if (hour < 17) return 'Good Afternoon,';
+    return 'Good Evening,';
+  };
+
+  const firstName = user?.name?.split(' ')[0] || 'Rider';
 
   return (
     <View style={styles.container}>
@@ -46,8 +87,8 @@ const RiderDashboard = () => {
       {/* Header */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.greeting}>Good Morning,</Text>
-          <Text style={styles.riderName}>Kwame Agyemang</Text>
+          <Text style={styles.greeting}>{getGreeting()}</Text>
+          <Text style={styles.riderName}>{firstName}</Text>
         </View>
         <View style={styles.onlineToggle}>
           <View style={[
@@ -66,7 +107,7 @@ const RiderDashboard = () => {
             </Text>
             <Switch
               value={isOnline}
-              onValueChange={setIsOnline}
+              onValueChange={handleToggleOnline}
               trackColor={{ false: '#E2E8F0', true: '#86EFAC' }}
               thumbColor={isOnline ? '#22C55E' : '#fff'}
               style={{ transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] }}
@@ -86,7 +127,9 @@ const RiderDashboard = () => {
           <Text style={[styles.statLabel, { color: '#BBF7D0' }]}>Earnings</Text>
         </View>
         <View style={styles.statCard}>
-          <Text style={styles.statValue}>4.8 ⭐</Text>
+          <Text style={styles.statValue}>
+            {user?.rating ? `${user.rating} ⭐` : '5.0 ⭐'}
+          </Text>
           <Text style={styles.statLabel}>Rating</Text>
         </View>
       </View>
@@ -97,7 +140,9 @@ const RiderDashboard = () => {
           <Text style={styles.offlineIcon}>🏍️</Text>
           <View style={styles.offlineTextBox}>
             <Text style={styles.offlineTitle}>You're currently offline</Text>
-            <Text style={styles.offlineSub}>Toggle online to start receiving delivery requests.</Text>
+            <Text style={styles.offlineSub}>
+              Toggle online to start receiving delivery requests.
+            </Text>
           </View>
         </View>
       )}
@@ -107,7 +152,7 @@ const RiderDashboard = () => {
         <Text style={styles.sectionTitle}>
           {isOnline ? 'Pending Requests' : 'No Active Requests'}
         </Text>
-        {isOnline && (
+        {isOnline && deliveries.length > 0 && (
           <View style={styles.liveBadge}>
             <View style={styles.liveDot} />
             <Text style={styles.liveText}>Live</Text>
@@ -115,48 +160,71 @@ const RiderDashboard = () => {
         )}
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 30 }}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 30 }}
+      >
         {isOnline ? (
-          pendingDeliveries.map((delivery) => (
-            <View key={delivery.id} style={styles.deliveryCard}>
-
-              {/* Card Header */}
-              <View style={styles.cardHeader}>
-                <View>
-                  <Text style={styles.senderName}>{delivery.sender}</Text>
-                  <Text style={styles.packageTag}>{delivery.package}</Text>
-                </View>
-                <View style={styles.priceBox}>
-                  <Text style={styles.deliveryPrice}>{delivery.price}</Text>
-                  <Text style={styles.deliveryMeta}>{delivery.distance} · {delivery.eta}</Text>
-                </View>
-              </View>
-
-              {/* Route */}
-              <View style={styles.routeBox}>
-                <View style={styles.routeRow}>
-                  <View style={styles.greenDot} />
-                  <Text style={styles.routeText} numberOfLines={1}>{delivery.pickup}</Text>
-                </View>
-                <View style={styles.routeLine} />
-                <View style={styles.routeRow}>
-                  <View style={styles.redDot} />
-                  <Text style={styles.routeText} numberOfLines={1}>{delivery.dropoff}</Text>
-                </View>
-              </View>
-
-              {/* Actions */}
-              <View style={styles.actionButtons}>
-                <TouchableOpacity style={styles.rejectBtn}>
-                  <Text style={styles.rejectText}>Reject</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.acceptBtn}>
-                  <Text style={styles.acceptText}>Accept →</Text>
-                </TouchableOpacity>
-              </View>
-
+          deliveries.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyIcon}>✅</Text>
+              <Text style={styles.emptyTitle}>All caught up!</Text>
+              <Text style={styles.emptySub}>No pending requests right now.</Text>
             </View>
-          ))
+          ) : (
+            deliveries.map((delivery) => (
+              <View key={delivery.id} style={styles.deliveryCard}>
+
+                {/* Card Header */}
+                <View style={styles.cardHeader}>
+                  <View>
+                    <Text style={styles.senderName}>{delivery.sender}</Text>
+                    <Text style={styles.packageTag}>{delivery.package}</Text>
+                  </View>
+                  <View style={styles.priceBox}>
+                    <Text style={styles.deliveryPrice}>{delivery.price}</Text>
+                    <Text style={styles.deliveryMeta}>
+                      {delivery.distance} · {delivery.eta}
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Route */}
+                <View style={styles.routeBox}>
+                  <View style={styles.routeRow}>
+                    <View style={styles.greenDot} />
+                    <Text style={styles.routeText} numberOfLines={1}>
+                      {delivery.pickup}
+                    </Text>
+                  </View>
+                  <View style={styles.routeLine} />
+                  <View style={styles.routeRow}>
+                    <View style={styles.redDot} />
+                    <Text style={styles.routeText} numberOfLines={1}>
+                      {delivery.dropoff}
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Actions */}
+                <View style={styles.actionButtons}>
+                  <TouchableOpacity
+                    style={styles.rejectBtn}
+                    onPress={() => handleReject(delivery.id)}
+                  >
+                    <Text style={styles.rejectText}>Reject</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.acceptBtn}
+                    onPress={() => handleAccept(delivery)}
+                  >
+                    <Text style={styles.acceptText}>Accept →</Text>
+                  </TouchableOpacity>
+                </View>
+
+              </View>
+            ))
+          )
         ) : (
           <View style={styles.emptyState}>
             <Text style={styles.emptyIcon}>🛵</Text>
@@ -326,9 +394,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     marginTop: 3,
   },
-  priceBox: {
-    alignItems: 'flex-end',
-  },
+  priceBox: { alignItems: 'flex-end' },
   deliveryPrice: {
     fontSize: 15,
     fontWeight: '700',
